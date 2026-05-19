@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+/* Mode sombre piloté par la classe .dark sur <html> (toggle JS), pas par prefers-color-scheme */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Évite le défilement horizontal (ex. sections full-bleed en w-screen / 100vw + barre de défilement verticale) */
+html {
+  overflow-x: hidden;
+}
+
+:root {
+  font-family:
+    'Outfit',
+    system-ui,
+    -apple-system,
+    sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  transition: background-color 280ms ease;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(59, 130, 246, 0.08) 0%, rgba(248, 250, 252, 0) 34%),
+    radial-gradient(circle at 85% 20%, rgba(30, 64, 175, 0.08) 0%, rgba(248, 250, 252, 0) 30%),
+    #f8fafc;
+}
+
+html.dark body {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(59, 130, 246, 0.14) 0%, rgba(2, 6, 23, 0) 32%),
+    radial-gradient(circle at 88% 22%, rgba(37, 99, 235, 0.14) 0%, rgba(2, 6, 23, 0) 30%),
+    #020617;
+}

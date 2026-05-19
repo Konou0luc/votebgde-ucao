@@ -285,7 +285,7 @@ export function CandidateListStepPage() {
         Selection de liste candidate
       </h1>
       <p className={`mt-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-        Les listes proviennent du scrutin actif. Choisissez votre liste puis continuez.
+        Les listes proviennent du vote actif. Choisissez votre liste puis continuez.
       </p>
 
       <div className="mt-5 space-y-2">
@@ -328,7 +328,7 @@ export function CandidateListStepPage() {
 
         {!listsLoading && candidateLists.length === 0 ? (
           <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-            Aucune liste candidate disponible pour ce scrutin.
+            Aucune liste candidate disponible pour ce vote.
           </p>
         ) : null}
       </div>

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Home, ArrowLeft, Search } from 'lucide-react'
+import { Home, ArrowLeft } from 'lucide-react'
 import { useSiteTheme } from '../shared/ui/site-theme'
 
 export function NotFoundPage() {

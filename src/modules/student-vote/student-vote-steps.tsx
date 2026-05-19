@@ -53,7 +53,7 @@ export function MatriculeStepPage() {
       return
     }
     if (!activeScrutinQuery.data?.id) {
-      pushToast('Aucun scrutin actif detecte pour le moment.', 'error')
+      pushToast('Aucun vote actif détecté pour le moment.', 'error')
       return
     }
 
@@ -143,7 +143,7 @@ export function MatriculeStepPage() {
           ) : scrutinLoading ? (
             <>
               <Loader2 size={16} className="animate-spin" />
-              Chargement du scrutin...
+              Chargement du vote...
             </>
           ) : (
             'Envoyer le code OTP'

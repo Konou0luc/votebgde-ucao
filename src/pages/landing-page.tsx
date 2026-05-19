@@ -98,26 +98,22 @@ export function LandingPage() {
               className="space-y-9 py-2 text-white lg:col-span-8 lg:space-y-7 lg:py-0"
             >
               <h1 className="max-w-5xl text-balance text-4xl font-semibold tracking-tight md:text-6xl">
-                Conduisez un scrutin numerique institutionnel, clair et fiable
+                Votez en toute simplicité et sécurité pour votre campus
               </h1>
               <p className="max-w-[62ch] text-base leading-relaxed text-slate-100/90 md:text-lg">
-                VoteBGDE orchestre un parcours de vote rigoureux, lisible et
-                rapide, adapte aux usages mobiles et aux contraintes de
-                gouvernance universitaire.
+                Exprimez votre choix rapidement grâce à une interface intuitive,
+                conçue pour garantir la transparence et la fiabilité de chaque vote.
               </p>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Link
                   to="/vote"
                   className="group inline-flex min-h-12 items-center justify-between rounded-full bg-blue-600 pl-6 pr-2 text-sm font-medium text-white transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-blue-500 active:scale-[0.98]"
                 >
-                  Demarrer le vote
+                  Démarrer le vote
                   <span className="ml-3 inline-flex size-8 items-center justify-center rounded-full bg-white/20 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-[1px]">
                     <ArrowRight size={16} />
                   </span>
                 </Link>
-                <span className="text-sm text-slate-100/90">
-                  Experience adaptee a toutes les tailles d ecran
-                </span>
               </div>
             </motion.div>
 
@@ -128,7 +124,7 @@ export function LandingPage() {
                 </p>
                 <p className="text-base leading-relaxed text-white/90">
                   Le processus se deploie dans un cadre controle, transparent et
-                  comprehensible par tous les acteurs du scrutin.
+                  comprehensible par tous les acteurs du vote.
                 </p>
                 <div className="flex gap-8 pt-2">
                   <div>
@@ -188,7 +184,7 @@ export function LandingPage() {
             transition={{ duration: 0.35 }}
             className="grid items-stretch gap-5 md:grid-cols-[1.2fr_0.8fr]"
           >
-            <div className="relative min-h-[440px] overflow-hidden rounded-[1.6rem] border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-900 md:h-full md:min-h-[440px]">
+            <div className="relative min-h-[380px] overflow-hidden rounded-[1.6rem] border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-900 md:h-full md:min-h-[380px]">
               <img
                 src={activeStep.image}
                 alt={activeStep.alt}
@@ -198,7 +194,7 @@ export function LandingPage() {
               />
             </div>
 
-            <div className="flex min-h-[440px] flex-col rounded-[1.6rem] border border-slate-200 bg-white p-6 text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 md:h-full md:min-h-[440px]">
+            <div className="flex min-h-[380px] flex-col rounded-[1.6rem] border border-slate-200 bg-white p-6 text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 md:h-full md:min-h-[380px]">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-blue-700 dark:text-blue-300">
                   Etape {activeStepIndex + 1} / {onboardingSteps.length}

@@ -32,7 +32,7 @@ export function VoteResultsPage() {
             <p className="font-semibold">Vote enregistre</p>
             <p className="mt-1 text-sm opacity-90">
               Merci. Votre participation est prise en compte. Vous ne pouvez pas voter une seconde fois pour ce
-              scrutin.
+              vote.
             </p>
           </div>
         </div>
@@ -64,7 +64,7 @@ export function VoteResultsPage() {
 
       {activeScrutinQuery.isError && (
         <p className={`text-sm ${isDark ? 'text-amber-200' : 'text-amber-800'}`}>
-          Impossible de charger le scrutin actif. Reessayez plus tard.
+          Impossible de charger le vote actif. Reessayez plus tard.
         </p>
       )}
 
@@ -89,7 +89,7 @@ export function VoteResultsPage() {
                 Statistiques detaillees a venir
               </p>
               <p className={`mt-2 text-sm leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                Les resultats complets ne sont pas encore publies pour le scrutin actif :{' '}
+                Les resultats complets ne sont pas encore publies pour le vote actif :{' '}
                 <span className="font-medium text-slate-800 dark:text-slate-200">
                   {activeScrutinQuery.data.title}
                 </span>

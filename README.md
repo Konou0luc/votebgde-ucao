@@ -24,7 +24,7 @@ Creer un fichier `.env`:
 
 ```bash
 VITE_API_URL=http://localhost:3000/api
-VITE_ADMIN_PATH=/console-vbgde-9f3a
+VITE_ADMIN_PATH=/.....................
 ```
 
 ## Structure initiale

@@ -95,12 +95,45 @@ export async function getCandidateListsForScrutin(scrutinId: string): Promise<Ca
 }
 
 export async function postCandidateList(payload: CreateCandidateListPayload): Promise<CandidateListRecord> {
-  const response = await httpClient.post<ApiEnvelope<CandidateListRecord>>('/admin/candidate-lists', payload)
+  const formData = new FormData()
+  Object.entries(payload).forEach(([key, value]) => {
+    if (key === 'video' && value instanceof File) {
+      formData.append('video', value)
+    } else if (key === 'members' || key === 'actionPlan') {
+      formData.append(key, JSON.stringify(value))
+    } else if (value !== undefined && value !== null) {
+      formData.append(key, String(value))
+    }
+  })
+
+  const response = await httpClient.post<ApiEnvelope<CandidateListRecord>>('/admin/candidate-lists', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
   return response.data.data
 }
 
-export async function patchCandidateList(id: string, payload: UpdateCandidateListPayload): Promise<CandidateListRecord> {
-  const response = await httpClient.patch<ApiEnvelope<CandidateListRecord>>(`/admin/candidate-lists/${id}`, payload)
+export async function patchCandidateList(
+  id: string,
+  payload: UpdateCandidateListPayload,
+): Promise<CandidateListRecord> {
+  const formData = new FormData()
+  Object.entries(payload).forEach(([key, value]) => {
+    if (key === 'video' && value instanceof File) {
+      formData.append('video', value)
+    } else if (key === 'members' || key === 'actionPlan') {
+      formData.append(key, JSON.stringify(value))
+    } else if (value !== undefined && value !== null) {
+      formData.append(key, String(value))
+    }
+  })
+
+  const response = await httpClient.patch<ApiEnvelope<CandidateListRecord>>(
+    `/admin/candidate-lists/${id}`,
+    formData,
+    {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    },
+  )
   return response.data.data
 }
 

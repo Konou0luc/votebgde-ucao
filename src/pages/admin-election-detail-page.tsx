@@ -11,6 +11,9 @@ import {
   BarChart3,
   PieChart,
   Users,
+  Video,
+  X,
+  FileVideo,
 } from 'lucide-react'
 import { getAdminErrorMessage } from '../modules/admin-dashboard/api'
 import { useAdminAuthStore } from '../modules/admin-dashboard/auth-store'
@@ -26,7 +29,7 @@ import {
   useUpdateElectionMutation,
 } from '../modules/admin-dashboard/hooks'
 import { canPublishResults, canWriteCandidateList, canWriteElection } from '../modules/admin-dashboard/permissions'
-import type { ScrutinStatus } from '../modules/admin-dashboard/types'
+import type { CandidateListMember, ScrutinStatus } from '../modules/admin-dashboard/types'
 import { ADMIN_PRIVATE_PATH } from '../shared/constants/routes'
 import { electionStatusLabelFr } from '../shared/utils/election-status-fr'
 import { isoToDatetimeLocalValue, toIsoFromDatetimeLocal } from '../shared/utils/datetime-local'
@@ -82,7 +85,25 @@ export function AdminElectionDetailPage() {
   const [newListName, setNewListName] = useState('')
   const [newListOrder, setNewListOrder] = useState(1)
   const [newListSlogan, setNewListSlogan] = useState('')
+  const [newListDescription, setNewListDescription] = useState('')
+  const [newListMembers, setNewListMembers] = useState<CandidateListMember[]>([])
+  const [newListActionPlan, setNewListActionPlan] = useState<string[]>([])
+  const [newListVideo, setNewListVideo] = useState<File | null>(null)
   const [listError, setListError] = useState<string | null>(null)
+
+  const adminRoles = [
+    'Président',
+    'Vice-président',
+    'Secrétaire',
+    'Secrétaire Adjoint',
+    'Trésorier',
+    'Trésorier Adjoint',
+    'Commissaire au compte',
+  ]
+
+  const [memberName, setMemberName] = useState('')
+  const [memberRole, setMemberRole] = useState(adminRoles[0])
+  const [planItem, setPlanItem] = useState('')
 
   useEffect(() => {
     if (!election) return
@@ -168,9 +189,17 @@ export function AdminElectionDetailPage() {
         name: newListName.trim(),
         order: newListOrder,
         slogan: newListSlogan.trim() || undefined,
+        description: newListDescription.trim() || undefined,
+        members: newListMembers,
+        actionPlan: newListActionPlan,
+        video: newListVideo,
       })
       setNewListName('')
       setNewListSlogan('')
+      setNewListDescription('')
+      setNewListMembers([])
+      setNewListActionPlan([])
+      setNewListVideo(null)
       setNewListOrder((o) => o + 1)
     } catch (err) {
       setListError(getAdminErrorMessage(err, 'Création de liste impossible.'))
@@ -431,10 +460,58 @@ export function AdminElectionDetailPage() {
                 </thead>
                 <tbody>
                   {(listsQuery.data ?? []).map((row) => (
-                    <tr key={row.id} className="border-b border-slate-100 dark:border-white/[0.04]">
-                      <td className="py-3 font-medium text-slate-900 dark:text-slate-100">{row.name}</td>
-                      <td className="py-3 font-mono">{row.order}</td>
-                      <td className="py-3">{row.isActive ? 'Oui' : 'Non'}</td>
+                    <tr
+                      key={row.id}
+                      className="group border-b border-slate-50 last:border-0 hover:bg-slate-50/50 dark:border-white/[0.02] dark:hover:bg-white/[0.02]"
+                    >
+                      <td className="py-4 pl-4 pr-3 text-sm font-semibold text-slate-900 dark:text-white">
+                        {row.order}
+                      </td>
+                      <td className="py-4 px-3">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-slate-900 dark:text-white">
+                            {row.name}
+                          </span>
+                          {row.slogan && (
+                            <span className="text-xs italic text-slate-500">« {row.slogan} »</span>
+                          )}
+                          {row.members && row.members.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {row.members.map((m, i) => (
+                                <span
+                                  key={i}
+                                  className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600 dark:bg-white/5 dark:text-slate-400"
+                                >
+                                  {m.name}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-4 px-3">
+                        <div className="flex items-center gap-2">
+                          {row.videoUrl ? (
+                            <div className="flex items-center gap-1 text-emerald-600">
+                              <Video className="size-3" />
+                              <span className="text-[10px] font-bold">Vidéo OK</span>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] font-medium text-slate-400">Pas de vidéo</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-4 px-3 text-sm text-slate-600 dark:text-slate-400">
+                        {row.isActive ? (
+                          <span className="inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20">
+                            Active
+                          </span>
+                        ) : (
+                          <span className="inline-flex rounded-full bg-slate-50 px-2 py-0.5 text-[10px] font-bold text-slate-500 ring-1 ring-slate-200 dark:bg-white/5 dark:text-slate-500 dark:ring-white/10">
+                            Inactive
+                          </span>
+                        )}
+                      </td>
                       {canListWrite ? (
                         <td className="py-3 text-right">
                           {row.isActive ? (
@@ -458,46 +535,195 @@ export function AdminElectionDetailPage() {
             </div>
 
             {canListWrite && (
-              <form onSubmit={onAddList} className="mt-8 space-y-3 rounded-xl border border-dashed border-slate-200 p-4 dark:border-white/[0.08]">
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Ajouter une liste</p>
-                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-                  <div className="min-w-[160px] flex-1">
-                    <label className="mb-1 block text-xs text-slate-500">Nom</label>
+              <form
+                onSubmit={onAddList}
+                className="mt-12 space-y-8 rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm dark:border-white/[0.08] dark:bg-slate-900/50"
+              >
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-white/[0.05]">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                    Nouvelle liste candidate
+                  </h3>
+                  <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
+                    Configuration complète
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                      Nom de la liste
+                    </label>
                     <input
+                      required
                       value={newListName}
                       onChange={(ev) => setNewListName(ev.target.value)}
-                      className="min-h-10 w-full rounded-lg border border-slate-200 px-3 text-sm dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
+                      placeholder="Ex: Excellence UCAO"
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium outline-none transition-all focus:border-blue-500 focus:bg-white dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
                     />
                   </div>
-                  <div className="w-24">
-                    <label className="mb-1 block text-xs text-slate-500">Ordre</label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={100}
-                      value={newListOrder}
-                      onChange={(ev) => setNewListOrder(Number(ev.target.value) || 1)}
-                      className="min-h-10 w-full rounded-lg border border-slate-200 px-3 text-sm dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-                  <div className="min-w-[200px] flex-1">
-                    <label className="mb-1 block text-xs text-slate-500">Slogan (optionnel)</label>
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                      Slogan
+                    </label>
                     <input
                       value={newListSlogan}
                       onChange={(ev) => setNewListSlogan(ev.target.value)}
-                      className="min-h-10 w-full rounded-lg border border-slate-200 px-3 text-sm dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
+                      placeholder="Ex: Bâtir ensemble"
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium outline-none transition-all focus:border-blue-500 focus:bg-white dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
                     />
                   </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                      Ordre d'affichage
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={newListOrder}
+                      onChange={(ev) => setNewListOrder(Number(ev.target.value) || 1)}
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium outline-none transition-all focus:border-blue-500 focus:bg-white dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                    Description & Programme
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={newListDescription}
+                    onChange={(ev) => setNewListDescription(ev.target.value)}
+                    placeholder="Détaillez les ambitions de la liste..."
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-sm font-medium outline-none transition-all focus:border-blue-500 focus:bg-white dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                  {/* Membres */}
+                  <div className="space-y-4 rounded-2xl border border-slate-100 bg-slate-50/30 p-5 dark:border-white/[0.05] dark:bg-white/[0.02]">
+                    <div className="flex items-center gap-2">
+                      <Users className="size-4 text-blue-600" />
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">Membres de la liste</h4>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {newListMembers.map((m, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 dark:bg-white/[0.05] dark:text-slate-200 dark:ring-white/[0.1]"
+                        >
+                          <span className="font-bold">{m.name}</span>
+                          <span className="text-slate-400">({m.role})</span>
+                          <button
+                            type="button"
+                            onClick={() => setNewListMembers((prev) => prev.filter((_, i) => i !== idx))}
+                            className="ml-1 text-slate-400 hover:text-rose-500"
+                          >
+                            <X className="size-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        placeholder="Nom complet"
+                        value={memberName}
+                        onChange={(e) => setMemberName(e.target.value)}
+                        className="h-10 flex-1 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none focus:border-blue-500 dark:border-white/[0.1] dark:bg-slate-900"
+                      />
+                      <select
+                        value={memberRole}
+                        onChange={(e) => setMemberRole(e.target.value)}
+                        className="h-10 flex-1 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none focus:border-blue-500 dark:border-white/[0.1] dark:bg-slate-900"
+                      >
+                        {adminRoles.map((role) => (
+                          <option key={role} value={role}>
+                            {role}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (memberName && memberRole) {
+                            setNewListMembers((p) => [...p, { name: memberName, role: memberRole }])
+                            setMemberName('')
+                            // On garde le rôle actuel pour faciliter l'ajout successif si besoin
+                          }
+                        }}
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                      >
+                        <Plus className="size-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Vidéo de campagne */}
+                  <div className="space-y-4 rounded-2xl border border-slate-100 bg-slate-50/30 p-5 dark:border-white/[0.05] dark:bg-white/[0.02]">
+                    <div className="flex items-center gap-2">
+                      <Video className="size-4 text-rose-500" />
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">Vidéo de campagne</h4>
+                    </div>
+                    {newListVideo ? (
+                      <div className="flex items-center justify-between rounded-xl bg-emerald-50 p-3 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:ring-emerald-500/30">
+                        <div className="flex items-center gap-3">
+                          <FileVideo className="size-5 text-emerald-600" />
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200">
+                              {newListVideo.name}
+                            </span>
+                            <span className="text-[10px] text-emerald-600/70">
+                              {(newListVideo.size / (1024 * 1024)).toFixed(2)} MB
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNewListVideo(null)}
+                          className="text-emerald-600 hover:text-rose-600"
+                        >
+                          <X className="size-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex h-24 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 transition-colors hover:border-blue-500 hover:bg-blue-50/30 dark:border-white/[0.1] dark:hover:border-blue-500/50">
+                        <Video className="mb-2 size-6 text-slate-400" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                          Charger une vidéo (MP4, WebM)
+                        </span>
+                        <input
+                          type="file"
+                          accept="video/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) setNewListVideo(file)
+                          }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between border-t border-slate-100 pt-6 dark:border-white/[0.05]">
+                  {listError ? (
+                    <p className="text-xs font-bold text-rose-500">{listError}</p>
+                  ) : (
+                    <div />
+                  )}
                   <button
                     type="submit"
                     disabled={createListMutation.isPending}
-                    className="inline-flex min-h-10 items-center gap-2 rounded-full bg-slate-900 px-4 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-60 dark:bg-blue-600 dark:hover:bg-blue-700"
+                    className="inline-flex h-12 items-center gap-3 rounded-xl bg-blue-600 px-8 text-sm font-bold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 active:scale-[0.98] disabled:opacity-60"
                   >
-                    <Plus className="size-4" />
-                    Ajouter
+                    {createListMutation.isPending ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Plus className="size-4" />
+                    )}
+                    Enregistrer la liste
                   </button>
                 </div>
-                {listError ? <p className="text-sm text-rose-600">{listError}</p> : null}
               </form>
             )}
           </>

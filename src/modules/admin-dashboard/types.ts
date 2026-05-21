@@ -108,12 +108,20 @@ export type ElectionResultsData = {
   results: ElectionResultRow[]
 }
 
+export type CandidateListMember = {
+  name: string
+  role: string
+}
+
 export type CandidateListRecord = {
   id: string
   scrutinId: string
   name: string
   slogan: string | null
   description: string | null
+  members: CandidateListMember[]
+  actionPlan: string[]
+  videoUrl: string | null
   order: number
   isActive: boolean
   createdAt: string
@@ -125,6 +133,9 @@ export type CreateCandidateListPayload = {
   name: string
   slogan?: string
   description?: string
+  members?: CandidateListMember[]
+  actionPlan?: string[]
+  video?: File | null // Pour l'upload
   order: number
 }
 
@@ -132,6 +143,9 @@ export type UpdateCandidateListPayload = {
   name?: string
   slogan?: string
   description?: string
+  members?: CandidateListMember[]
+  actionPlan?: string[]
+  video?: File | null // Pour l'upload
   order?: number
   isActive?: boolean
 }

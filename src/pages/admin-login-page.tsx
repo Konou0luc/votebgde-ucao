@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { motion } from 'framer-motion'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { BadgeCheck, KeyRound, Loader2, Lock, Mail } from 'lucide-react'
+import { BadgeCheck, Eye, EyeOff, KeyRound, Loader2, Lock, Mail } from 'lucide-react'
 import campusVisual from '../../assets/ucao-l1.jpeg'
 import { getAdminErrorMessage } from '../modules/admin-dashboard/api'
 import { useAdminAuthStore } from '../modules/admin-dashboard/auth-store'
@@ -21,6 +21,7 @@ export function AdminLoginPage() {
   const [step, setStep] = useState<LoginStep>('credentials')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [otpSessionToken, setOtpSessionToken] = useState('')
   const [emailMasked, setEmailMasked] = useState('')
   const [debugOtp, setDebugOtp] = useState<string | undefined>()
@@ -87,209 +88,232 @@ export function AdminLoginPage() {
     }
   }
 
-  const shellOuter =
-    'rounded-[2rem] border border-slate-200/90 bg-white p-1.5 shadow-[0_32px_80px_-40px_rgba(15,23,42,0.18)]'
-  const shellInner =
-    'rounded-[calc(2rem-6px)] border border-slate-100 bg-white px-8 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]'
-
   const pending = loginMutation.isPending || verifyMutation.isPending
 
   return (
-    <div className="grid min-h-[100dvh] grid-cols-1 md:grid-cols-2">
-      <div className="relative h-52 shrink-0 md:h-auto md:min-h-[100dvh]">
+    <div className="flex min-h-[100dvh] flex-col bg-white dark:bg-slate-950 md:grid md:grid-cols-2">
+      {/* Header Image Section */}
+      <div className="relative h-[42vh] shrink-0 md:h-auto md:min-h-[100dvh]">
         <img
           src={campusVisual}
           alt="Campus universitaire — environnement institutionnel VoteBGDE"
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div
-          className="absolute inset-0 bg-gradient-to-br from-slate-950/75 via-slate-900/35 to-blue-950/50 md:from-slate-950/65 md:via-slate-900/25"
+          className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-transparent to-slate-950/90 md:bg-gradient-to-br md:from-slate-950/80 md:via-slate-900/40 md:to-blue-950/60"
           aria-hidden
         />
-        <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-12">
-          <p className="text-[10px] uppercase tracking-[0.22em] text-white/75">Console administration</p>
-          <p className="mt-3 max-w-[36ch] text-2xl font-semibold leading-tight tracking-tight text-white md:text-3xl">
-            Pilotage institutionnel du vote étudiant et des élections numériques.
-          </p>
-          <p className="mt-4 max-w-[42ch] text-sm leading-relaxed text-white/85">
-            Accès réservé aux rôles autorisés. Les votes et la publication des résultats sont tracés et audités.
-          </p>
+        
+        {/* Mobile Header Overlay Content */}
+        <div className="absolute inset-x-0 bottom-0 p-6 md:p-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <span className="inline-flex items-center rounded-full bg-white/10 px-2.5 py-0.5 text-[10px] font-medium tracking-widest text-white/90 backdrop-blur-md ring-1 ring-white/20">
+              ESPACE ADMINISTRATION
+            </span>
+            <h1 className="mt-4 max-w-[18ch] text-3xl font-bold leading-[1.1] tracking-tight text-white md:max-w-[36ch] md:text-4xl lg:text-5xl">
+              Pilotage institutionnel <span className="text-blue-400">du vote</span>
+            </h1>
+            <p className="mt-4 hidden max-w-[42ch] text-sm leading-relaxed text-white/70 md:block lg:text-base">
+              Accès réservé aux rôles autorisés. Les votes et la publication des résultats sont tracés et audités de bout en bout.
+            </p>
+          </motion.div>
         </div>
       </div>
 
-      <div className="flex flex-col justify-center bg-slate-50 px-5 py-12 md:px-10 lg:px-14">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
-          className="mx-auto w-full max-w-[440px]"
-        >
-          <div className={shellOuter}>
-            <div className={shellInner}>
-              {step === 'credentials' ? (
-                <>
-                  <div className="mb-8 text-center md:text-left">
-                    <div className="mb-4 inline-flex size-14 items-center justify-center rounded-2xl bg-blue-600/10 ring-1 ring-blue-600/20">
-                      <BadgeCheck className="size-8 text-blue-600" strokeWidth={1.25} />
-                    </div>
-                    <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Espace sécurisé</p>
-                    <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
-                      Administration VoteBGDE
-                    </h1>
-                    <p className="mt-2 max-w-[38ch] text-sm leading-relaxed text-slate-600">
-                      Connectez-vous pour piloter les élections et la publication des résultats.
-                    </p>
-                  </div>
+      {/* Form Section */}
+      <div className="relative -mt-6 flex flex-1 flex-col justify-center rounded-t-[2.5rem] bg-white px-6 pt-10 pb-12 dark:bg-slate-950 md:mt-0 md:rounded-none md:px-10 md:py-12 lg:px-16">
+        <div className="mx-auto w-full max-w-[420px]">
+          {step === 'credentials' ? (
+            <motion.div
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-8"
+            >
+              <div className="space-y-2">
+                <div className="inline-flex size-12 items-center justify-center rounded-2xl bg-blue-600/5 ring-1 ring-blue-600/10">
+                  <BadgeCheck className="size-6 text-blue-600" strokeWidth={1.5} />
+                </div>
+                <h2 className="text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
+                  Administration
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Identifiez-vous pour gérer les scrutins en cours.
+                </p>
+              </div>
 
-                  <form onSubmit={onSubmitCredentials} className="space-y-4">
-                    <div>
-                      <label
-                        htmlFor="admin-email"
-                        className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-600"
-                      >
-                        Email
-                      </label>
-                      <div className="relative">
-                        <Mail
-                          className="pointer-events-none absolute left-3 top-1/2 size-[18px] -translate-y-1/2 text-slate-400"
-                          strokeWidth={1.25}
-                        />
-                        <input
-                          id="admin-email"
-                          name="email"
-                          type="email"
-                          autoComplete="username"
-                          value={email}
-                          onChange={(ev) => setEmail(ev.target.value)}
-                          className="min-h-12 w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-3 text-sm text-slate-900 outline-none ring-blue-500/0 transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="admin-password"
-                        className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-600"
-                      >
-                        Mot de passe
-                      </label>
-                      <div className="relative">
-                        <Lock
-                          className="pointer-events-none absolute left-3 top-1/2 size-[18px] -translate-y-1/2 text-slate-400"
-                          strokeWidth={1.25}
-                        />
-                        <input
-                          id="admin-password"
-                          name="password"
-                          type="password"
-                          autoComplete="current-password"
-                          value={password}
-                          onChange={(ev) => setPassword(ev.target.value)}
-                          className="min-h-12 w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                        />
-                      </div>
-                    </div>
-
-                    {error ? (
-                      <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">{error}</p>
-                    ) : null}
-
-                    <button
-                      type="submit"
-                      disabled={pending}
-                      className="group mt-2 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-blue-600 px-6 text-sm font-semibold text-white transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-blue-700 active:scale-[0.98] disabled:opacity-60"
+              <form onSubmit={onSubmitCredentials} className="space-y-6">
+                <div className="space-y-4">
+                  <div className="group space-y-2">
+                    <label
+                      htmlFor="admin-email"
+                      className="ml-1 text-[11px] font-bold uppercase tracking-widest text-slate-400 transition-colors group-focus-within:text-blue-600"
                     >
-                      {loginMutation.isPending ? (
-                        <>
-                          <Loader2 className="size-4 animate-spin" strokeWidth={2} />
-                          Envoi du code...
-                        </>
-                      ) : (
-                        <>
-                          Continuer
-                          <span className="inline-flex size-8 items-center justify-center rounded-full bg-white/20 transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5">
-                            <span className="text-xs">&#8594;</span>
-                          </span>
-                        </>
-                      )}
-                    </button>
-                  </form>
-                </>
-              ) : (
-                <>
-                  <div className="mb-8 text-center md:text-left">
-                    <div className="mb-4 inline-flex size-14 items-center justify-center rounded-2xl bg-blue-600/10 ring-1 ring-blue-600/20">
-                      <KeyRound className="size-8 text-blue-600" strokeWidth={1.25} />
-                    </div>
-                    <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Vérification OTP</p>
-                    <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Code de connexion</h1>
-                    <p className="mt-2 max-w-[38ch] text-sm leading-relaxed text-slate-600">
-                      Un code à 6 chiffres a été envoyé à <span className="font-medium text-slate-800">{emailMasked}</span>.
-                      Saisissez-le ci-dessous pour accéder au tableau de bord.
-                    </p>
-                    {debugOtp ? (
-                      <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 font-mono text-sm text-amber-950">
-                        Dev — code OTP : {debugOtp}
-                      </p>
-                    ) : null}
-                  </div>
-
-                  <form onSubmit={onSubmitOtp} className="space-y-4">
-                    <div>
-                      <label htmlFor="admin-otp" className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-600">
-                        Code OTP
-                      </label>
+                      Email professionnel
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-blue-600" />
                       <input
-                        id="admin-otp"
-                        name="otp"
-                        type="text"
-                        inputMode="numeric"
-                        autoComplete="one-time-code"
-                        maxLength={6}
-                        value={otp}
-                        onChange={(ev) => setOtp(ev.target.value.replace(/\D/g, '').slice(0, 6))}
-                        placeholder="000000"
-                        className="min-h-12 w-full rounded-xl border border-slate-200 bg-white py-3 px-4 text-center font-mono text-lg tracking-[0.35em] text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                        id="admin-email"
+                        type="email"
+                        placeholder="nom@institution.edu"
+                        value={email}
+                        onChange={(ev) => setEmail(ev.target.value)}
+                        className="h-14 w-full rounded-2xl border border-slate-100 bg-slate-50/50 pl-12 pr-4 text-sm font-medium outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/5 dark:border-slate-800 dark:bg-slate-900/50 dark:text-white dark:focus:bg-slate-900"
                       />
                     </div>
+                  </div>
 
-                    {error ? (
-                      <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">{error}</p>
-                    ) : null}
-
-                    <button
-                      type="submit"
-                      disabled={pending}
-                      className="group mt-2 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-blue-600 px-6 text-sm font-semibold text-white transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-blue-700 active:scale-[0.98] disabled:opacity-60"
+                  <div className="group space-y-2">
+                    <label
+                      htmlFor="admin-password"
+                      className="ml-1 text-[11px] font-bold uppercase tracking-widest text-slate-400 transition-colors group-focus-within:text-blue-600"
                     >
-                      {verifyMutation.isPending ? (
-                        <>
-                          <Loader2 className="size-4 animate-spin" strokeWidth={2} />
-                          Vérification...
-                        </>
-                      ) : (
-                        <>
-                          Accéder au tableau de bord
-                          <span className="inline-flex size-8 items-center justify-center rounded-full bg-white/20 transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5">
-                            <span className="text-xs">&#8594;</span>
-                          </span>
-                        </>
-                      )}
-                    </button>
+                      Mot de passe
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-blue-600" />
+                      <input
+                        id="admin-password"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="••••••••••••"
+                        value={password}
+                        onChange={(ev) => setPassword(ev.target.value)}
+                        className="h-14 w-full rounded-2xl border border-slate-100 bg-slate-50/50 pl-12 pr-12 text-sm font-medium outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/5 dark:border-slate-800 dark:bg-slate-900/50 dark:text-white dark:focus:bg-slate-900"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600 focus:outline-none dark:hover:text-slate-200"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="size-5" strokeWidth={1.5} />
+                        ) : (
+                          <Eye className="size-5" strokeWidth={1.5} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
-                    <button
-                      type="button"
-                      onClick={goBackToCredentials}
-                      disabled={pending}
-                      className="w-full text-center text-sm font-medium text-slate-600 underline-offset-4 hover:text-slate-900 hover:underline disabled:opacity-50"
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex items-center gap-3 rounded-2xl border border-rose-100 bg-rose-50/50 p-4 text-sm text-rose-600 dark:border-rose-900/30 dark:bg-rose-950/30 dark:text-rose-400"
+                  >
+                    <div className="size-1.5 shrink-0 rounded-full bg-rose-500" />
+                    {error}
+                  </motion.div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={pending}
+                  className="group relative h-14 w-full overflow-hidden rounded-2xl bg-slate-950 text-sm font-bold text-white transition-all hover:bg-slate-900 active:scale-[0.98] disabled:opacity-50 dark:bg-blue-600 dark:hover:bg-blue-700"
+                >
+                  <div className="relative flex items-center justify-center gap-2">
+                    {loginMutation.isPending ? (
+                      <Loader2 className="size-5 animate-spin" />
+                    ) : (
+                      <>
+                        Continuer
+                        <span className="inline-flex size-6 items-center justify-center rounded-full bg-white/10 transition-transform group-hover:translate-x-1">
+                          →
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </button>
+              </form>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-8"
+            >
+              <div className="space-y-2">
+                <div className="inline-flex size-12 items-center justify-center rounded-2xl bg-blue-600/5 ring-1 ring-blue-600/10">
+                  <KeyRound className="size-6 text-blue-600" strokeWidth={1.5} />
+                </div>
+                <h2 className="text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
+                  Code de sécurité
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Saisissez le code envoyé à <span className="font-semibold text-slate-900 dark:text-white">{emailMasked}</span>
+                </p>
+              </div>
+
+              <form onSubmit={onSubmitOtp} className="space-y-6">
+                <div className="space-y-4">
+                  <div className="group space-y-2">
+                    <label
+                      htmlFor="admin-otp"
+                      className="ml-1 text-[11px] font-bold uppercase tracking-widest text-slate-400 transition-colors group-focus-within:text-blue-600"
                     >
-                      Modifier l’email ou le mot de passe
-                    </button>
-                  </form>
-                </>
-              )}
-            </div>
-          </div>
-        </motion.div>
+                      Code à 6 chiffres
+                    </label>
+                    <input
+                      id="admin-otp"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      value={otp}
+                      onChange={(ev) => setOtp(ev.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="000 000"
+                      className="h-16 w-full rounded-2xl border border-slate-100 bg-slate-50/50 text-center font-mono text-3xl tracking-[0.5em] font-bold outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/5 dark:border-slate-800 dark:bg-slate-900/50 dark:text-white dark:focus:bg-slate-900"
+                    />
+                  </div>
+
+                  {debugOtp && (
+                    <div className="rounded-xl border border-amber-100 bg-amber-50/50 p-3 text-center font-mono text-xs text-amber-700 dark:border-amber-900/30 dark:bg-amber-950/30 dark:text-amber-400">
+                      DEBUG: {debugOtp}
+                    </div>
+                  )}
+                </div>
+
+                {error && (
+                  <div className="flex items-center gap-3 rounded-2xl border border-rose-100 bg-rose-50/50 p-4 text-sm text-rose-600 dark:border-rose-900/30 dark:bg-rose-950/30 dark:text-rose-400">
+                    <div className="size-1.5 shrink-0 rounded-full bg-rose-500" />
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={pending}
+                  className="group relative h-14 w-full overflow-hidden rounded-2xl bg-slate-950 text-sm font-bold text-white transition-all hover:bg-slate-900 active:scale-[0.98] disabled:opacity-50 dark:bg-blue-600 dark:hover:bg-blue-700"
+                >
+                  <div className="relative flex items-center justify-center gap-2">
+                    {verifyMutation.isPending ? (
+                      <Loader2 className="size-5 animate-spin" />
+                    ) : (
+                      <>
+                        Vérifier et accéder
+                        <span className="inline-flex size-6 items-center justify-center rounded-full bg-white/10 transition-transform group-hover:translate-x-1">
+                          →
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={goBackToCredentials}
+                  className="w-full text-center text-xs font-bold uppercase tracking-widest text-slate-400 transition-colors hover:text-blue-600"
+                >
+                  Retour à l'identification
+                </button>
+              </form>
+            </motion.div>
+          )}
+        </div>
       </div>
     </div>
   )

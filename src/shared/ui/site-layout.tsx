@@ -11,8 +11,7 @@ import {
   ArrowRight,
   CaretRight,
   InstagramLogo,
-  LinkedinLogo,
-  TwitterLogo
+  LinkedinLogo
 } from '@phosphor-icons/react'
 import { getInitialSiteTheme, SiteThemeContext } from './site-theme'
 import { ToastViewport } from './toast-viewport'

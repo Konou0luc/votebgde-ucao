@@ -1,5 +1,5 @@
 import { useCallback, useRef, type ClipboardEvent, type KeyboardEvent } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useSiteTheme } from './site-theme'
 
 const LEN = 6
@@ -98,7 +98,6 @@ export function OtpInput({ value, onChange, isDark: isDarkProp, id, disabled, 'a
   const getBoxClass = (index: number) => {
     const isFocused = typeof document !== 'undefined' && document.activeElement === inputsRef.current[index]
     const hasValue = digits[index] !== ''
-    const isCurrent = index === value.length || (index === LEN - 1 && value.length === LEN)
 
     if (isDark) {
       return `${boxBaseClass} ${

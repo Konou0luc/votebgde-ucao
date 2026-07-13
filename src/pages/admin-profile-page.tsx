@@ -5,8 +5,6 @@ import {
   Mail,
   Shield,
   Loader2,
-  CheckCircle2,
-  AlertCircle,
   ArrowLeft,
   AlertTriangle,
 } from 'lucide-react'

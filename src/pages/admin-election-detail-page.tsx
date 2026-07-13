@@ -46,13 +46,7 @@ function statusBadgeClass(status: string) {
   return 'bg-slate-100 text-slate-800 ring-slate-200'
 }
 
-const statusOptions: { value: ScrutinStatus; label: string }[] = [
-  { value: 'DRAFT', label: 'Brouillon' },
-  { value: 'SCHEDULED', label: 'Planifié' },
-  { value: 'OPEN', label: 'Ouvert' },
-  { value: 'CLOSED', label: 'Clôturé' },
-  { value: 'ARCHIVED', label: 'Archivé' },
-]
+
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
@@ -109,15 +103,7 @@ export function AdminElectionDetailPage() {
     onConfirm: () => {},
   })
 
-  const adminRoles = [
-    'Président',
-    'Vice-président',
-    'Secrétaire',
-    'Secrétaire Adjoint',
-    'Trésorier',
-    'Trésorier Adjoint',
-    'Commissaire au compte',
-  ]
+
 
   useEffect(() => {
     if (!election) return

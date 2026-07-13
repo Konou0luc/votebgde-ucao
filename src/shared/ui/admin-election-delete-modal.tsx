@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { AlertTriangle, Loader2, X } from 'lucide-react'
+import { AlertTriangle, Loader2 } from 'lucide-react'
 import type { ScrutinRecord } from '../../modules/admin-dashboard/types'
 
 type Props = {

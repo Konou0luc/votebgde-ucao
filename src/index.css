@@ -1,39 +1,117 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
-@import 'tailwindcss';
+@import "tailwindcss";
 
-/* Mode sombre piloté par la classe .dark sur <html> (toggle JS), pas par prefers-color-scheme */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Évite le défilement horizontal (ex. sections full-bleed en w-screen / 100vw + barre de défilement verticale) */
-html {
-  overflow-x: hidden;
+@theme {
+  --font-display: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --color-cream-50: #fffdfb;
+  --color-cream-100: #fdfbf7;
+  --color-cream-200: #f4f0e8;
+  
+  /* Brand Colors - Deep Blue */
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-900: #1e3a8a;
+  --color-brand-950: #172554;
+
+  --color-accent: #2563eb; /* Primary Blue */
+  --color-accent-soft: rgba(37, 99, 235, 0.12);
+
+  --color-night-800: #0f172a;
+  --color-night-900: #020617;
+  --color-night-950: #010413;
+
+  --shadow-soft:
+    0 24px 48px -12px rgba(15, 23, 42, 0.08),
+    0 12px 24px -8px rgba(15, 23, 42, 0.06);
+  --shadow-inner-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.55);
+
+  --ease-premium: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-:root {
-  font-family:
-    'Outfit',
-    system-ui,
-    -apple-system,
-    sans-serif;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  html {
+    @apply scroll-smooth antialiased;
+  }
+
+  body {
+    @apply min-h-[100dvh] overflow-x-hidden bg-white font-sans text-slate-900 transition-colors duration-500 ease-[cubic-bezier(0.32,0.72,0,1)];
+    font-feature-settings: "kern" 1, "liga" 1;
+  }
+
+  #root {
+    @apply min-h-[100dvh] min-w-0 overflow-x-hidden;
+  }
+
+  .dark body {
+    @apply bg-night-950 text-slate-100;
+  }
+
+  ::selection {
+    @apply bg-brand-500/15 text-slate-900;
+  }
+
+  .dark ::selection {
+    @apply bg-brand-500/35 text-slate-50;
+  }
 }
 
-body {
-  margin: 0;
-  min-width: 320px;
-  transition: background-color 280ms ease;
-  background:
-    radial-gradient(circle at 10% 0%, rgba(59, 130, 246, 0.08) 0%, rgba(248, 250, 252, 0) 34%),
-    radial-gradient(circle at 85% 20%, rgba(30, 64, 175, 0.08) 0%, rgba(248, 250, 252, 0) 30%),
-    #f8fafc;
+/* Grain fixe — pointer-events none, couche légère */
+.grain-overlay {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-html.dark body {
-  background:
-    radial-gradient(circle at 12% 0%, rgba(59, 130, 246, 0.14) 0%, rgba(2, 6, 23, 0) 32%),
-    radial-gradient(circle at 88% 22%, rgba(37, 99, 235, 0.14) 0%, rgba(2, 6, 23, 0) 30%),
-    #020617;
+.dark .grain-overlay {
+  opacity: 0.045;
+}
+
+@layer components {
+  .section-container {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .tt-overline {
+    @apply text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400;
+  }
+  .tt-overline-sm {
+    @apply text-xs font-medium uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400;
+  }
+  .tt-page-title {
+    @apply font-display text-3xl font-semibold text-slate-900 dark:text-white md:text-4xl;
+  }
+  .tt-body-muted {
+    @apply text-slate-600 dark:text-slate-400;
+  }
+
+  .tt-field-outline {
+    @apply border-0 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none ring-1 ring-slate-900/[0.07] transition-[box-shadow,ring-color] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] placeholder:text-slate-900/35 focus:ring-brand-500/28 dark:bg-night-900 dark:text-white dark:ring-white/[0.09] dark:placeholder:text-slate-100/35 dark:focus:ring-brand-500/38;
+  }
+
+  .tt-btn-primary-solid {
+    @apply rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition-[transform,background-color] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-slate-800 active:scale-[0.98] dark:bg-white dark:text-night-950 dark:hover:bg-slate-100;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-50 dark:bg-night-950;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 rounded-full border-2 border-transparent bg-clip-content dark:bg-slate-800;
 }

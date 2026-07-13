@@ -83,13 +83,14 @@ export function AdminElectionDeleteModal({ election, isDeleting, onClose, onConf
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center p-4 sm:items-center sm:p-6"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-6"
       role="presentation"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget && !isDeleting) onClose()
       }}
     >
-      <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm dark:bg-black/70" aria-hidden />
+      {/* Backdrop haut de gamme */}
+      <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-md dark:bg-black/60" aria-hidden />
 
       <div
         ref={panelRef}
@@ -97,48 +98,37 @@ export function AdminElectionDeleteModal({ election, isDeleting, onClose, onConf
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descId}
-        className="relative z-[1] w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-white/[0.12] dark:bg-slate-950"
+        className="relative z-[1] w-full max-w-[440px] overflow-hidden rounded-[2.5rem] border border-white/20 bg-white/90 p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/90 dark:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)]"
       >
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex min-w-0 items-start gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200">
-              <AlertTriangle className="size-5" strokeWidth={1.5} />
-            </span>
-            <div className="min-w-0">
-              <h2 id={titleId} className="text-lg font-semibold text-slate-900 dark:text-white">
-                {step === 1 ? 'Supprimer cette élection ?' : 'Confirmation finale'}
-              </h2>
-              <p id={descId} className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                {step === 1 ? (
-                  <>
-                    L’élection « <span className="font-medium text-slate-800 dark:text-slate-200">{election.title}</span>{' '}
-                    » sera archivée et retirée des flux actifs. Cette action est défavorable aux votants si l’élection est
-                    encore en cours — vérifiez les dates avant de continuer.
-                  </>
-                ) : (
-                  <>
-                    Saisissez le titre exact de l’élection pour confirmer la suppression définitive (archivage côté
-                    serveur).
-                  </>
-                )}
-              </p>
-            </div>
+        <div className="flex flex-col items-center text-center">
+          {/* Icone avec aura lumineuse */}
+          <div className="relative mb-6 flex size-16 items-center justify-center rounded-[1.5rem] bg-rose-500/10 text-rose-600 dark:text-rose-400">
+            <div className="absolute inset-0 animate-pulse rounded-[1.5rem] bg-rose-500 blur-xl opacity-20" />
+            <AlertTriangle className="relative size-8" strokeWidth={1.5} />
           </div>
-          <button
-            type="button"
-            onClick={() => !isDeleting && onClose()}
-            className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40 dark:hover:bg-white/[0.08] dark:hover:text-slate-200"
-            aria-label="Fermer"
-            disabled={isDeleting}
-          >
-            <X className="size-5" strokeWidth={1.5} />
-          </button>
+
+          <h2 id={titleId} className="text-xl font-bold tracking-tight text-slate-950 dark:text-white">
+            {step === 1 ? 'Supprimer l’élection ?' : 'Confirmation finale'}
+          </h2>
+          
+          <p id={descId} className="mt-3 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+            {step === 1 ? (
+              <>
+                L’élection « <span className="font-semibold text-slate-900 dark:text-slate-200">{election.title}</span> » sera archivée. 
+                Cette action est irréversible et impactera les votes en cours.
+              </>
+            ) : (
+              <>
+                Pour confirmer, veuillez saisir le titre exact de l’élection ci-dessous.
+              </>
+            )}
+          </p>
         </div>
 
         {step === 2 ? (
-          <div className="mt-6 space-y-2">
-            <label htmlFor="delete-confirm-title" className="block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-500">
-              Titre à recopier
+          <div className="mt-8 space-y-3">
+            <label htmlFor="delete-confirm-title" className="block px-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              Titre de l&apos;élection
             </label>
             <input
               ref={confirmInputRef}
@@ -149,60 +139,60 @@ export function AdminElectionDeleteModal({ election, isDeleting, onClose, onConf
               onChange={(e) => setConfirmInput(e.target.value)}
               placeholder={election.title}
               disabled={isDeleting}
-              className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none ring-blue-500/0 transition placeholder:text-slate-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 disabled:opacity-60 dark:border-white/[0.12] dark:bg-slate-900 dark:text-slate-100"
+              className="h-12 w-full rounded-2xl border border-slate-200 bg-white/50 px-4 text-sm font-medium outline-none transition focus:border-rose-500 focus:bg-white dark:border-white/10 dark:bg-slate-950/50"
             />
-            {!titleMatches && confirmInput.length > 0 ? (
-              <p className="text-xs text-rose-600 dark:text-rose-300">Le titre ne correspond pas exactement.</p>
-            ) : null}
+            {!titleMatches && confirmInput.length > 0 && (
+              <p className="px-1 text-[10px] font-bold text-rose-500">Le titre ne correspond pas.</p>
+            )}
           </div>
         ) : null}
 
-        <div className="mt-8 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
+        <div className="mt-10 flex flex-col gap-3">
           {step === 1 ? (
             <>
               <button
                 type="button"
-                ref={firstBtnRef}
-                onClick={() => !isDeleting && onClose()}
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-sm font-medium text-slate-800 transition hover:bg-slate-50 dark:border-white/[0.12] dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-white/[0.06]"
+                onClick={() => setStep(2)}
+                className="flex h-12 w-full items-center justify-center rounded-2xl bg-rose-600 text-sm font-bold text-white shadow-lg shadow-rose-600/25 transition-all hover:bg-rose-700 active:scale-[0.98]"
                 disabled={isDeleting}
               >
-                Annuler
+                Continuer la suppression
               </button>
               <button
                 type="button"
-                onClick={() => setStep(2)}
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-rose-600 px-5 text-sm font-semibold text-white transition hover:bg-rose-700"
+                ref={firstBtnRef}
+                onClick={() => !isDeleting && onClose()}
+                className="flex h-12 w-full items-center justify-center rounded-2xl bg-slate-100 text-sm font-bold text-slate-600 transition-all hover:bg-slate-200 active:scale-[0.98] dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"
                 disabled={isDeleting}
               >
-                Continuer vers la suppression
+                Annuler
               </button>
             </>
           ) : (
             <>
               <button
                 type="button"
-                ref={firstBtnRef}
-                onClick={() => !isDeleting && setStep(1)}
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-sm font-medium text-slate-800 transition hover:bg-slate-50 dark:border-white/[0.12] dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-white/[0.06]"
-                disabled={isDeleting}
-              >
-                Retour
-              </button>
-              <button
-                type="button"
                 onClick={() => void handleFinalDelete()}
                 disabled={!titleMatches || isDeleting}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-rose-600 px-5 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:pointer-events-none disabled:opacity-40"
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-rose-600 text-sm font-bold text-white shadow-lg shadow-rose-600/25 transition-all hover:bg-rose-700 active:scale-[0.98] disabled:opacity-50 disabled:shadow-none"
               >
                 {isDeleting ? (
                   <>
-                    <Loader2 className="size-4 animate-spin" strokeWidth={2} />
+                    <Loader2 className="size-4 animate-spin" />
                     Suppression…
                   </>
                 ) : (
-                  'Supprimer définitivement'
+                  'Confirmer la suppression'
                 )}
+              </button>
+              <button
+                type="button"
+                ref={firstBtnRef}
+                onClick={() => !isDeleting && setStep(1)}
+                className="flex h-12 w-full items-center justify-center rounded-2xl bg-slate-100 text-sm font-bold text-slate-600 transition-all hover:bg-slate-200 active:scale-[0.98] dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"
+                disabled={isDeleting}
+              >
+                Retour
               </button>
             </>
           )}

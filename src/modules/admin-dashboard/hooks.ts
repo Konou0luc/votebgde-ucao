@@ -2,22 +2,32 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   archiveAdminElection,
   deactivateCandidateList,
+  deleteAdminUser,
+  getAdminAuditLogs,
   getAdminDashboard,
   getAdminScrutins,
+  getAdminUsers,
   getCandidateListsForScrutin,
   getElectionParticipation,
   getElectionResultsAdmin,
   patchAdminElection,
+  patchAdminUser,
+  patchCandidateList,
   postAdminElection,
   postAdminLogin,
   postAdminLoginVerify,
+  postAdminUser,
   postCandidateList,
   publishAdminElectionResults,
+  purgeAdminAuditLogs,
 } from './api'
 import type {
+  CreateAdminPayload,
   CreateCandidateListPayload,
   CreateElectionPayload,
   LoginPayload,
+  UpdateAdminPayload,
+  UpdateCandidateListPayload,
   UpdateElectionPayload,
   VerifyLoginOtpPayload,
 } from './types'
@@ -166,3 +176,78 @@ export function useDeactivateCandidateListMutation(scrutinId: string) {
     },
   })
 }
+
+export function usePatchCandidateListMutation(scrutinId: string) {
+  const queryClient = useQueryClient()
+  const token = useAdminAuthStore((s) => s.accessToken)
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateCandidateListPayload }) =>
+      patchCandidateList(id, payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'candidate-lists', scrutinId, token] })
+    },
+  })
+}
+
+export function useAdminUsersQuery() {
+  const token = useAdminAuthStore((s) => s.accessToken)
+  return useQuery({
+    queryKey: ['admin', 'users', token],
+    queryFn: getAdminUsers,
+    enabled: Boolean(token),
+  })
+}
+
+export function useCreateAdminMutation() {
+  const queryClient = useQueryClient()
+  const token = useAdminAuthStore((s) => s.accessToken)
+  return useMutation({
+    mutationFn: (payload: CreateAdminPayload) => postAdminUser(payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'users', token] })
+    },
+  })
+}
+
+export function useUpdateAdminMutation() {
+  const queryClient = useQueryClient()
+  const token = useAdminAuthStore((s) => s.accessToken)
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateAdminPayload }) => patchAdminUser(id, payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'users', token] })
+    },
+  })
+}
+
+export function useDeleteAdminMutation() {
+  const queryClient = useQueryClient()
+  const token = useAdminAuthStore((s) => s.accessToken)
+  return useMutation({
+    mutationFn: (id: string) => deleteAdminUser(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'users', token] })
+    },
+  })
+}
+
+export function useAdminAuditLogsQuery() {
+  const token = useAdminAuthStore((s) => s.accessToken)
+  return useQuery({
+    queryKey: ['admin', 'audit-logs', token],
+    queryFn: getAdminAuditLogs,
+    enabled: Boolean(token),
+  })
+}
+
+export function usePurgeAuditLogsMutation() {
+  const queryClient = useQueryClient()
+  const token = useAdminAuthStore((s) => s.accessToken)
+  return useMutation({
+    mutationFn: purgeAdminAuditLogs,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'audit-logs', token] })
+    },
+  })
+}
+

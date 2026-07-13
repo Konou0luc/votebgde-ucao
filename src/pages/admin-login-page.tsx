@@ -8,6 +8,7 @@ import { getAdminErrorMessage } from '../modules/admin-dashboard/api'
 import { useAdminAuthStore } from '../modules/admin-dashboard/auth-store'
 import { useAdminLoginMutation, useAdminLoginVerifyMutation } from '../modules/admin-dashboard/hooks'
 import { ADMIN_PRIVATE_PATH } from '../shared/constants/routes'
+import { OtpInput } from '../shared/ui/otp-input'
 
 type LoginStep = 'credentials' | 'otp'
 
@@ -82,7 +83,12 @@ export function AdminLoginPage() {
         refreshToken: data.refreshToken,
         admin: data.admin,
       })
-      navigate(ADMIN_PRIVATE_PATH, { replace: true })
+      
+      if (data.admin.needsPasswordChange) {
+        navigate(`${ADMIN_PRIVATE_PATH}/profil`, { replace: true, state: { forcePasswordChange: true } })
+      } else {
+        navigate(ADMIN_PRIVATE_PATH, { replace: true })
+      }
     } catch (err) {
       setError(getAdminErrorMessage(err, 'Vérification impossible.'))
     }
@@ -251,22 +257,18 @@ export function AdminLoginPage() {
 
               <form onSubmit={onSubmitOtp} className="space-y-6">
                 <div className="space-y-4">
-                  <div className="group space-y-2">
+                  <div className="group space-y-4">
                     <label
                       htmlFor="admin-otp"
                       className="ml-1 text-[11px] font-bold uppercase tracking-widest text-slate-400 transition-colors group-focus-within:text-blue-600"
                     >
                       Code à 6 chiffres
                     </label>
-                    <input
+                    <OtpInput
                       id="admin-otp"
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      maxLength={6}
                       value={otp}
-                      onChange={(ev) => setOtp(ev.target.value.replace(/\D/g, '').slice(0, 6))}
-                      placeholder="000 000"
-                      className="h-16 w-full rounded-2xl border border-slate-100 bg-slate-50/50 text-center font-mono text-3xl tracking-[0.5em] font-bold outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/5 dark:border-slate-800 dark:bg-slate-900/50 dark:text-white dark:focus:bg-slate-900"
+                      onChange={setOtp}
+                      disabled={pending}
                     />
                   </div>
 

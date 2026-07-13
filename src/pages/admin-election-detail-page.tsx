@@ -12,16 +12,18 @@ import {
   PieChart,
   Users,
   Video,
-  X,
-  FileVideo,
+  Image as ImageIcon,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { getAdminErrorMessage } from '../modules/admin-dashboard/api'
 import { useAdminAuthStore } from '../modules/admin-dashboard/auth-store'
+import { useToastStore } from '../shared/ui/toast-store'
+import { ConfirmModal } from '../shared/ui/confirm-modal'
 import {
   useAdminScrutinsQuery,
   useArchiveElectionMutation,
   useCandidateListsQuery,
-  useCreateCandidateListMutation,
   useDeactivateCandidateListMutation,
   useElectionParticipationQuery,
   useElectionResultsAdminQuery,
@@ -29,7 +31,7 @@ import {
   useUpdateElectionMutation,
 } from '../modules/admin-dashboard/hooks'
 import { canPublishResults, canWriteCandidateList, canWriteElection } from '../modules/admin-dashboard/permissions'
-import type { CandidateListMember, ScrutinStatus } from '../modules/admin-dashboard/types'
+import type { ScrutinStatus } from '../modules/admin-dashboard/types'
 import { ADMIN_PRIVATE_PATH } from '../shared/constants/routes'
 import { electionStatusLabelFr } from '../shared/utils/election-status-fr'
 import { isoToDatetimeLocalValue, toIsoFromDatetimeLocal } from '../shared/utils/datetime-local'
@@ -52,10 +54,20 @@ const statusOptions: { value: ScrutinStatus; label: string }[] = [
   { value: 'ARCHIVED', label: 'Archivé' },
 ]
 
+function StatCard({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2.5 dark:border-white/[0.06] dark:bg-slate-900/40 md:rounded-2xl md:px-4 md:py-3">
+      <p className="text-[9px] uppercase tracking-wide text-slate-500 md:text-[10px]">{label}</p>
+      <p className="mt-1 font-mono text-lg font-semibold tabular-nums text-slate-950 dark:text-white md:text-xl">{value}</p>
+    </div>
+  )
+}
+
 export function AdminElectionDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const admin = useAdminAuthStore((s) => s.admin)
+  const pushToast = useToastStore((s) => s.pushToast)
 
   const scrutinsQuery = useAdminScrutinsQuery()
   const election = useMemo(
@@ -71,7 +83,6 @@ export function AdminElectionDetailPage() {
   const updateMutation = useUpdateElectionMutation(id ?? '')
   const archiveMutation = useArchiveElectionMutation()
   const publishMutation = usePublishElectionResultsMutation()
-  const createListMutation = useCreateCandidateListMutation(id ?? '')
   const deactivateListMutation = useDeactivateCandidateListMutation(id ?? '')
 
   const [editing, setEditing] = useState(false)
@@ -81,15 +92,22 @@ export function AdminElectionDetailPage() {
   const [endsAt, setEndsAt] = useState('')
   const [status, setStatus] = useState<ScrutinStatus>('DRAFT')
   const [formError, setFormError] = useState<string | null>(null)
+  const [candidateListPage, setCandidateListPage] = useState(1)
+  const CANDIDATE_LIST_PAGE_SIZE = 5
 
-  const [newListName, setNewListName] = useState('')
-  const [newListOrder, setNewListOrder] = useState(1)
-  const [newListSlogan, setNewListSlogan] = useState('')
-  const [newListDescription, setNewListDescription] = useState('')
-  const [newListMembers, setNewListMembers] = useState<CandidateListMember[]>([])
-  const [newListActionPlan, setNewListActionPlan] = useState<string[]>([])
-  const [newListVideo, setNewListVideo] = useState<File | null>(null)
-  const [listError, setListError] = useState<string | null>(null)
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    confirmLabel?: string
+    variant?: 'danger' | 'primary'
+    onConfirm: () => void
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  })
 
   const adminRoles = [
     'Président',
@@ -100,10 +118,6 @@ export function AdminElectionDetailPage() {
     'Trésorier Adjoint',
     'Commissaire au compte',
   ]
-
-  const [memberName, setMemberName] = useState('')
-  const [memberRole, setMemberRole] = useState(adminRoles[0])
-  const [planItem, setPlanItem] = useState('')
 
   useEffect(() => {
     if (!election) return
@@ -124,6 +138,23 @@ export function AdminElectionDetailPage() {
     ['CLOSED', 'ARCHIVED'].includes(election.status.toUpperCase()) &&
     !election.resultsPublishedAt
 
+  const activeLists = useMemo(
+    () => (listsQuery.data ?? []).filter((l) => l.isActive),
+    [listsQuery.data],
+  )
+
+  const totalCandidateListPages = Math.max(1, Math.ceil(activeLists.length / CANDIDATE_LIST_PAGE_SIZE))
+  const paginatedCandidateLists = useMemo(() => {
+    const start = (candidateListPage - 1) * CANDIDATE_LIST_PAGE_SIZE
+    return activeLists.slice(start, start + CANDIDATE_LIST_PAGE_SIZE)
+  }, [activeLists, candidateListPage])
+
+  useEffect(() => {
+    if (candidateListPage > totalCandidateListPages) {
+      setCandidateListPage(totalCandidateListPages)
+    }
+  }, [totalCandidateListPages, candidateListPage])
+
   async function onSaveElection(e: FormEvent) {
     e.preventDefault()
     if (!election || !id) return
@@ -142,6 +173,7 @@ export function AdminElectionDetailPage() {
         endsAt: endsIso,
         status,
       })
+      pushToast('Modification enregistrée.', 'success')
       setEditing(false)
     } catch (err) {
       setFormError(getAdminErrorMessage(err, 'Enregistrement impossible.'))
@@ -150,69 +182,64 @@ export function AdminElectionDetailPage() {
 
   async function onArchive() {
     if (!election || !id) return
-    if (
-      !window.confirm(
-        'Archiver cette élection ? Elle passera au statut Archivé. Les données de vote sont conservées.',
-      )
-    ) {
-      return
-    }
-    try {
-      await archiveMutation.mutateAsync(id)
-      navigate(`${ADMIN_PRIVATE_PATH}/scrutins`)
-    } catch (err) {
-      alert(getAdminErrorMessage(err, 'Archivage impossible.'))
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Archiver l\'élection',
+      message: 'Voulez-vous vraiment archiver cette élection ? Elle passera au statut Archivé.',
+      confirmLabel: 'Archiver',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          await archiveMutation.mutateAsync(id)
+          pushToast('Élection archivée.', 'success')
+          navigate(`${ADMIN_PRIVATE_PATH}/scrutins`)
+        } catch (err) {
+          pushToast(getAdminErrorMessage(err, 'Archivage impossible.'), 'error')
+        } finally {
+          setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+        }
+      },
+    })
   }
 
   async function onPublish() {
     if (!id) return
-    if (!window.confirm('Publier officiellement les résultats pour les étudiants et le grand public ?')) return
-    try {
-      await publishMutation.mutateAsync(id)
-    } catch (err) {
-      alert(getAdminErrorMessage(err, 'Publication impossible.'))
-    }
-  }
-
-  async function onAddList(e: FormEvent) {
-    e.preventDefault()
-    if (!id) return
-    setListError(null)
-    if (!newListName.trim() || newListName.trim().length < 2) {
-      setListError('Nom de liste trop court.')
-      return
-    }
-    try {
-      await createListMutation.mutateAsync({
-        scrutinId: id,
-        name: newListName.trim(),
-        order: newListOrder,
-        slogan: newListSlogan.trim() || undefined,
-        description: newListDescription.trim() || undefined,
-        members: newListMembers,
-        actionPlan: newListActionPlan,
-        video: newListVideo,
-      })
-      setNewListName('')
-      setNewListSlogan('')
-      setNewListDescription('')
-      setNewListMembers([])
-      setNewListActionPlan([])
-      setNewListVideo(null)
-      setNewListOrder((o) => o + 1)
-    } catch (err) {
-      setListError(getAdminErrorMessage(err, 'Création de liste impossible.'))
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Publier les résultats',
+      message: 'Voulez-vous vraiment publier officiellement les résultats ? Cette action est irréversible.',
+      confirmLabel: 'Publier',
+      onConfirm: async () => {
+        try {
+          await publishMutation.mutateAsync(id)
+          pushToast('Résultats publiés avec succès.', 'success')
+        } catch (err) {
+          pushToast(getAdminErrorMessage(err, 'Publication impossible.'), 'error')
+        } finally {
+          setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+        }
+      },
+    })
   }
 
   async function onDeactivateList(listId: string) {
-    if (!window.confirm('Désactiver cette liste candidate ? Elle ne sera plus proposée au vote.')) return
-    try {
-      await deactivateListMutation.mutateAsync(listId)
-    } catch (err) {
-      alert(getAdminErrorMessage(err, 'Mise à jour impossible.'))
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Désactiver la liste',
+      message: 'Voulez-vous vraiment désactiver cette liste candidate ? Elle ne sera plus proposée au vote.',
+      confirmLabel: 'Désactiver',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          await deactivateListMutation.mutateAsync(listId)
+          pushToast('Liste désactivée avec succès.', 'success')
+        } catch (err) {
+          pushToast(getAdminErrorMessage(err, 'Mise à jour impossible.'), 'error')
+        } finally {
+          setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+        }
+      },
+    })
   }
 
   if (scrutinsQuery.isLoading || !id) {
@@ -236,35 +263,45 @@ export function AdminElectionDetailPage() {
   }
 
   return (
-    <div className="space-y-10 pb-12">
-      <header className="border-b border-slate-200/90 pb-8 dark:border-white/[0.06]">
+    <div className="max-w-full pb-12 overflow-x-hidden">
+      <div className="space-y-6 md:space-y-10">
+        <header className="border-b border-slate-200/90 pb-6 dark:border-white/[0.06] md:pb-8">
         <Link
           to={`${ADMIN_PRIVATE_PATH}/scrutins`}
-          className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+          className="mb-4 inline-flex items-center gap-2 text-[10px] font-medium uppercase tracking-widest text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
         >
-          <ArrowLeft className="size-4" strokeWidth={1.25} />
-          Retour aux élections
+          <ArrowLeft className="size-3" strokeWidth={2} />
+          Retour
         </Link>
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Détail</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white md:text-4xl">
-              {election.title}
-            </h1>
-            <span
-              className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-medium ring-1 ${statusBadgeClass(election.status)}`}
-            >
-              {electionStatusLabelFr(election.status)}
-            </span>
+        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+          <div className="flex-1 space-y-4">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.22em] text-blue-600 dark:text-blue-400">Détails de l'élection</p>
+              <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 dark:text-white md:text-4xl">
+                {election.title}
+              </h1>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span
+                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ring-1 ${statusBadgeClass(election.status)}`}
+                >
+                  {electionStatusLabelFr(election.status)}
+                </span>
+                {election.resultsPublishedAt && (
+                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600 ring-1 ring-slate-200 dark:bg-white/5 dark:text-slate-400 dark:ring-white/10">
+                    Résultats publiés
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 md:gap-3">
             {canWrite && (
               <button
                 type="button"
                 onClick={() => setEditing((v) => !v)}
-                className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-800 shadow-sm hover:bg-slate-50 dark:border-white/[0.1] dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]"
+                className="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 shadow-sm transition hover:bg-slate-50 active:scale-95 dark:border-white/[0.1] dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08] md:h-10 md:px-5"
               >
-                <Pencil className="size-3.5" strokeWidth={1.25} />
+                <Pencil className="size-3.5" strokeWidth={1.5} />
                 {editing ? 'Fermer' : 'Modifier'}
               </button>
             )}
@@ -273,9 +310,9 @@ export function AdminElectionDetailPage() {
                 type="button"
                 onClick={onArchive}
                 disabled={archiveMutation.isPending}
-                className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-medium text-rose-800 hover:bg-rose-100 disabled:opacity-60 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-100 dark:hover:bg-rose-500/20"
+                className="inline-flex h-9 items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 text-xs font-bold text-rose-800 transition hover:bg-rose-100 active:scale-95 disabled:opacity-60 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-100 dark:hover:bg-rose-500/20 md:h-10 md:px-5"
               >
-                <Archive className="size-3.5" strokeWidth={1.25} />
+                <Archive className="size-3.5" strokeWidth={1.5} />
                 Archiver
               </button>
             )}
@@ -284,203 +321,249 @@ export function AdminElectionDetailPage() {
                 type="button"
                 onClick={onPublish}
                 disabled={publishMutation.isPending}
-                className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                className="inline-flex h-9 items-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 active:scale-95 disabled:opacity-60 md:h-10 md:px-5"
               >
-                <Megaphone className="size-3.5" strokeWidth={1.25} />
-                Publier les résultats
+                <Megaphone className="size-3.5" strokeWidth={1.5} />
+                Publier
               </button>
             )}
           </div>
         </div>
-        {election.resultsPublishedAt && (
-          <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
-            Résultats publiés le {new Date(election.resultsPublishedAt).toLocaleString('fr-FR')}.
-          </p>
-        )}
       </header>
 
-      {editing && canWrite && (
+      {editing && canWrite ? (
         <form
           onSubmit={onSaveElection}
-          className="space-y-4 rounded-[2rem] border border-slate-200/90 bg-white p-6 dark:border-white/[0.06] dark:bg-slate-950/40"
+          className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-xl shadow-slate-200/50 dark:border-white/[0.08] dark:bg-slate-900 dark:shadow-none md:rounded-[2.5rem] md:p-10"
         >
-          <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Modifier l&apos;élection</h2>
-          <div>
-            <label className="mb-1 block text-xs font-medium uppercase text-slate-500">Titre</label>
-            <input
-              value={title}
-              onChange={(ev) => setTitle(ev.target.value)}
-              className="min-h-11 w-full max-w-xl rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium uppercase text-slate-500">Description</label>
-            <textarea
-              value={description}
-              onChange={(ev) => setDescription(ev.target.value)}
-              rows={3}
-              className="w-full max-w-xl rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
-            />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase text-slate-500">Début</label>
-              <input
-                type="datetime-local"
-                value={startsAt}
-                onChange={(ev) => setStartsAt(ev.target.value)}
-                className="min-h-11 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
-              />
+          <div className="space-y-6 md:space-y-8">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="space-y-2.5">
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Titre</label>
+                <input
+                  required
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-medium outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-slate-900"
+                />
+              </div>
+              <div className="space-y-2.5">
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Statut</label>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as ScrutinStatus)}
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-3 text-base font-medium outline-none focus:border-blue-500 dark:border-white/10 dark:bg-slate-900"
+                >
+                  <option value="DRAFT">Brouillon</option>
+                  <option value="SCHEDULED">Planifié</option>
+                  <option value="OPEN">Ouvert</option>
+                  <option value="CLOSED">Clôturé</option>
+                  <option value="ARCHIVED">Archivé</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase text-slate-500">Fin</label>
-              <input
-                type="datetime-local"
-                value={endsAt}
-                onChange={(ev) => setEndsAt(ev.target.value)}
-                className="min-h-11 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium uppercase text-slate-500">Statut</label>
-            <select
-              value={status}
-              onChange={(ev) => setStatus(ev.target.value as ScrutinStatus)}
-              className="min-h-11 w-full max-w-sm rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
-            >
-              {statusOptions.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          {formError ? (
-            <p className="text-sm text-rose-600 dark:text-rose-300">{formError}</p>
-          ) : null}
-          <button
-            type="submit"
-            disabled={updateMutation.isPending}
-            className="rounded-full bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-          >
-            {updateMutation.isPending ? 'Enregistrement...' : 'Enregistrer'}
-          </button>
-        </form>
-      )}
 
-      {!editing && election.description && (
-        <p className="max-w-[72ch] text-sm leading-relaxed text-slate-600 dark:text-slate-400">{election.description}</p>
+            <div className="space-y-2.5">
+              <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Description</label>
+              <textarea
+                rows={3}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white p-4 text-base font-medium outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-slate-900"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="space-y-2.5">
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Début</label>
+                <input
+                  type="datetime-local"
+                  required
+                  value={startsAt}
+                  onChange={(e) => setStartsAt(e.target.value)}
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-medium outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-slate-900"
+                />
+              </div>
+              <div className="space-y-2.5">
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Fin</label>
+                <input
+                  type="datetime-local"
+                  required
+                  value={endsAt}
+                  onChange={(e) => setEndsAt(e.target.value)}
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-medium outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-slate-900"
+                />
+              </div>
+            </div>
+
+            {formError && (
+              <div className="rounded-xl bg-rose-50 p-3 text-xs font-bold text-rose-600 ring-1 ring-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:ring-rose-500/20">
+                {formError}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setEditing(false)}
+                className="h-11 rounded-xl bg-slate-100 px-8 text-sm font-bold text-slate-700 transition hover:bg-slate-200 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 md:h-12 md:rounded-2xl"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                disabled={updateMutation.isPending}
+                className="h-11 rounded-xl bg-blue-600 px-8 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 active:scale-95 disabled:opacity-50 md:h-12 md:rounded-2xl"
+              >
+                {updateMutation.isPending ? 'Enregistrement...' : 'Sauvegarder'}
+              </button>
+            </div>
+          </div>
+        </form>
+      ) : (
+        <div className="rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-slate-900 md:rounded-[2.5rem] md:p-10">
+          <h2 className="mb-4 text-lg font-bold tracking-tight text-slate-950 dark:text-white md:mb-6 md:text-xl">À propos de l'élection</h2>
+          <div className="prose prose-slate max-w-none dark:prose-invert">
+            {election.description ? (
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600 dark:text-slate-400 md:text-base">{election.description}</p>
+            ) : (
+              <p className="text-sm italic text-slate-400 md:text-base">Aucune description fournie pour cette élection.</p>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Participation */}
-      <section className="rounded-[2rem] border border-slate-200/90 bg-white p-6 shadow-sm dark:border-white/[0.06] dark:bg-slate-950/35 dark:shadow-none">
-        <div className="mb-4 flex items-center gap-2">
-          <Users className="size-5 text-blue-600 dark:text-blue-400" strokeWidth={1.25} />
-          <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Participation</h2>
+      <section className="overflow-hidden rounded-[1.5rem] border border-slate-200/90 bg-white p-5 shadow-sm dark:border-white/[0.06] dark:bg-slate-950/35 dark:shadow-none md:rounded-[2rem] md:p-8">
+        <div className="mb-6 flex items-center gap-3">
+          <div className="rounded-lg bg-blue-600/10 p-2 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400">
+            <Users className="size-5" strokeWidth={1.5} />
+          </div>
+          <h2 className="text-lg font-bold tracking-tight text-slate-950 dark:text-white">Participation</h2>
         </div>
         {participationQuery.isLoading ? (
-          <Loader2 className="size-6 animate-spin text-slate-400" />
+          <div className="flex h-20 items-center justify-center">
+            <Loader2 className="size-6 animate-spin text-blue-600" />
+          </div>
         ) : participationQuery.isError ? (
-          <p className="text-sm text-rose-600 dark:text-rose-300">Impossible de charger les statistiques.</p>
+          <p className="text-xs text-rose-600 dark:text-rose-300 md:text-sm">Impossible de charger les statistiques.</p>
         ) : participationQuery.data ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard label="Éligibles" value={participationQuery.data.eligibleStudents} />
-            <StatCard label="Participants (OTP)" value={participationQuery.data.participants} />
+            <StatCard label="Participants" value={participationQuery.data.participants} />
             <StatCard label="Ont voté" value={participationQuery.data.voters} />
-            <StatCard label="Taux participation" value={`${participationQuery.data.participationRate} %`} />
+            <StatCard label="Taux" value={`${participationQuery.data.participationRate} %`} />
           </div>
         ) : null}
       </section>
 
       {/* Résultats agrégés */}
       {resultsAllowed && (
-        <section className="rounded-[2rem] border border-slate-200/90 bg-white p-6 shadow-sm dark:border-white/[0.06] dark:bg-slate-950/35 dark:shadow-none">
-          <div className="mb-4 flex items-center gap-2">
-            <PieChart className="size-5 text-blue-600 dark:text-blue-400" strokeWidth={1.25} />
-            <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Résultats agrégés</h2>
+        <section className="overflow-hidden rounded-[1.5rem] border border-slate-200/90 bg-white p-5 shadow-sm dark:border-white/[0.06] dark:bg-slate-950/35 dark:shadow-none md:rounded-[2rem] md:p-8">
+          <div className="mb-6 flex items-center gap-3">
+            <div className="rounded-lg bg-blue-600/10 p-2 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400">
+              <PieChart className="size-5" strokeWidth={1.5} />
+            </div>
+            <h2 className="text-lg font-bold tracking-tight text-slate-950 dark:text-white">Résultats agrégés</h2>
           </div>
           {resultsQuery.isLoading ? (
-            <Loader2 className="size-6 animate-spin text-slate-400" />
+            <div className="flex h-20 items-center justify-center">
+              <Loader2 className="size-6 animate-spin text-blue-600" />
+            </div>
           ) : resultsQuery.isError ? (
-            <p className="text-sm text-rose-600 dark:text-rose-300">
+            <p className="text-xs text-rose-600 dark:text-rose-300 md:text-sm">
               {resultsQuery.error ? getAdminErrorMessage(resultsQuery.error, 'Résultats indisponibles.') : 'Erreur.'}
             </p>
           ) : resultsQuery.data ? (
-            <div className="overflow-x-auto">
-              <p className="mb-4 text-sm text-slate-600 dark:text-slate-400">
-                Total bulletins enregistrés :{' '}
-                <span className="font-mono font-semibold text-slate-900 dark:text-white">{resultsQuery.data.totalVotes}</span>
+            <div className="w-full">
+              <p className="mb-6 inline-flex items-center rounded-lg bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600 ring-1 ring-slate-200 dark:bg-white/5 dark:text-slate-400 dark:ring-white/10">
+                Total : {resultsQuery.data.totalVotes} bulletins
               </p>
-              <table className="w-full min-w-[480px] text-left text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200 text-xs uppercase text-slate-500 dark:border-white/[0.06]">
-                    <th className="py-2 pr-4">Liste</th>
-                    <th className="py-2 pr-4">Voix</th>
-                    <th className="py-2">%</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {resultsQuery.data.results.map((row) => (
-                    <tr key={row.candidateListId} className="border-b border-slate-100 dark:border-white/[0.04]">
-                      <td className="py-3 font-medium text-slate-900 dark:text-slate-100">{row.name}</td>
-                      <td className="py-3 font-mono tabular-nums">{row.votes}</td>
-                      <td className="py-3 font-mono tabular-nums">{row.percentage}</td>
+              <div className="overflow-x-auto scrollbar-hide">
+                <table className="w-full min-w-[320px] text-left text-xs md:text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-[10px] uppercase tracking-widest text-slate-400 dark:border-white/[0.06]">
+                      <th className="pb-4 font-bold">Liste</th>
+                      <th className="pb-4 font-bold">Voix</th>
+                      <th className="pb-4 font-bold">%</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {resultsQuery.data.results.map((row) => (
+                      <tr key={row.candidateListId} className="border-b border-slate-50 transition hover:bg-slate-50/50 dark:border-white/[0.02] dark:hover:bg-white/[0.02]">
+                        <td className="py-4 font-bold text-slate-900 dark:text-slate-100">{row.name}</td>
+                        <td className="py-4 font-mono tabular-nums text-slate-600 dark:text-slate-400">{row.votes}</td>
+                        <td className="py-4 font-mono tabular-nums font-bold text-blue-600 dark:text-blue-400">{row.percentage}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           ) : null}
         </section>
       )}
 
       {/* Listes candidates */}
-      <section className="rounded-[2rem] border border-slate-200/90 bg-white p-6 shadow-sm dark:border-white/[0.06] dark:bg-slate-950/35 dark:shadow-none">
-        <div className="mb-4 flex items-center gap-2">
-          <BarChart3 className="size-5 text-blue-600 dark:text-blue-400" strokeWidth={1.25} />
-          <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Listes candidates</h2>
+      <section className="overflow-hidden rounded-[1.5rem] border border-slate-200/90 bg-white p-5 shadow-sm dark:border-white/[0.06] dark:bg-slate-950/35 dark:shadow-none md:rounded-[2rem] md:p-8">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-blue-600/10 p-2 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400">
+              <BarChart3 className="size-5" strokeWidth={1.5} />
+            </div>
+            <h2 className="text-lg font-bold tracking-tight text-slate-950 dark:text-white">Listes candidates</h2>
+          </div>
+          {canListWrite && (
+            <Link
+              to={`${ADMIN_PRIVATE_PATH}/scrutins/${id}/listes/nouveau`}
+              className="inline-flex h-9 items-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 active:scale-95 md:h-10 md:px-5"
+            >
+              <Plus className="size-3.5" />
+              Nouvelle liste
+            </Link>
+          )}
         </div>
 
         {listsQuery.isLoading ? (
-          <Loader2 className="size-6 animate-spin text-slate-400" />
+          <div className="flex h-20 items-center justify-center">
+            <Loader2 className="size-6 animate-spin text-blue-600" />
+          </div>
         ) : listsQuery.isError ? (
-          <p className="text-sm text-rose-600">Liste indisponible.</p>
+          <p className="text-xs text-rose-600 md:text-sm">Liste indisponible.</p>
         ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[560px] text-sm">
+          <div className="space-y-10">
+            <div className="overflow-x-auto scrollbar-hide">
+              <table className="w-full min-w-[580px] text-xs md:text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 text-xs uppercase text-slate-500 dark:border-white/[0.06]">
-                    <th className="py-2 text-left">Nom</th>
-                    <th className="py-2 text-left">Ordre</th>
-                    <th className="py-2 text-left">Active</th>
-                    {canListWrite ? <th className="py-2 text-right">Actions</th> : null}
+                  <tr className="border-b border-slate-200 text-[10px] uppercase tracking-widest text-slate-400 dark:border-white/[0.06]">
+                    <th className="pb-4 text-left w-10 font-bold">#</th>
+                    <th className="pb-4 text-left font-bold">Informations</th>
+                    <th className="pb-4 text-left w-20 font-bold">Média</th>
+                    <th className="pb-4 text-left w-20 font-bold">Statut</th>
+                    {canListWrite ? <th className="pb-4 text-right w-20 font-bold">Actions</th> : null}
                   </tr>
                 </thead>
                 <tbody>
-                  {(listsQuery.data ?? []).map((row) => (
+                  {paginatedCandidateLists.map((row) => (
                     <tr
                       key={row.id}
-                      className="group border-b border-slate-50 last:border-0 hover:bg-slate-50/50 dark:border-white/[0.02] dark:hover:bg-white/[0.02]"
+                      className="group border-b border-slate-50 transition last:border-0 hover:bg-slate-50/50 dark:border-white/[0.02] dark:hover:bg-white/[0.02]"
                     >
-                      <td className="py-4 pl-4 pr-3 text-sm font-semibold text-slate-900 dark:text-white">
-                        {row.order}
-                      </td>
-                      <td className="py-4 px-3">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-bold text-slate-900 dark:text-white">
+                      <td className="py-5 pr-3 text-sm font-bold text-slate-400">{row.order}</td>
+                      <td className="py-5 px-3">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-bold text-slate-950 dark:text-white">
                             {row.name}
                           </span>
                           {row.slogan && (
                             <span className="text-xs italic text-slate-500">« {row.slogan} »</span>
                           )}
                           {row.members && row.members.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1">
+                            <div className="mt-2 flex flex-wrap gap-1.5">
                               {row.members.map((m, i) => (
                                 <span
                                   key={i}
-                                  className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600 dark:bg-white/5 dark:text-slate-400"
+                                  className="rounded-md bg-slate-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-600 dark:bg-white/5 dark:text-slate-400"
                                 >
                                   {m.name}
                                 </span>
@@ -489,43 +572,58 @@ export function AdminElectionDetailPage() {
                           )}
                         </div>
                       </td>
-                      <td className="py-4 px-3">
-                        <div className="flex items-center gap-2">
+                      <td className="py-5 px-3">
+                        <div className="flex flex-col gap-1.5">
                           {row.videoUrl ? (
-                            <div className="flex items-center gap-1 text-emerald-600">
+                            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20">
                               <Video className="size-3" />
-                              <span className="text-[10px] font-bold">Vidéo OK</span>
+                              Vidéo
                             </div>
-                          ) : (
-                            <span className="text-[10px] font-medium text-slate-400">Pas de vidéo</span>
+                          ) : null}
+                          {row.imageUrl ? (
+                            <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20">
+                              <ImageIcon className="size-3" />
+                              Image
+                            </div>
+                          ) : null}
+                          {!row.videoUrl && !row.imageUrl && (
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">
+                              Aucun
+                            </span>
                           )}
                         </div>
                       </td>
-                      <td className="py-4 px-3 text-sm text-slate-600 dark:text-slate-400">
-                        {row.isActive ? (
-                          <span className="inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20">
-                            Active
-                          </span>
-                        ) : (
-                          <span className="inline-flex rounded-full bg-slate-50 px-2 py-0.5 text-[10px] font-bold text-slate-500 ring-1 ring-slate-200 dark:bg-white/5 dark:text-slate-500 dark:ring-white/10">
-                            Inactive
-                          </span>
-                        )}
+                      <td className="py-5 px-3">
+                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20">
+                          Active
+                        </span>
                       </td>
                       {canListWrite ? (
-                        <td className="py-3 text-right">
-                          {row.isActive ? (
+                        <td className="py-5 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Link
+                              to={`${ADMIN_PRIVATE_PATH}/scrutins/${id}/listes/${row.id}/modifier`}
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-blue-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-blue-400"
+                              title="Modifier la liste"
+                            >
+                              <Pencil className="size-3.5" strokeWidth={2} />
+                            </Link>
                             <button
                               type="button"
                               onClick={() => onDeactivateList(row.id)}
-                              className="inline-flex items-center gap-1 text-xs font-medium text-rose-600 hover:underline dark:text-rose-400"
+                              disabled={deactivateListMutation.isPending}
+                              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-rose-100 bg-rose-50 px-2.5 text-[10px] font-bold uppercase tracking-widest text-rose-600 transition hover:bg-rose-100 hover:text-rose-700 active:scale-95 disabled:opacity-50 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-400 dark:hover:bg-rose-500/20"
+                              title="Supprimer la liste"
                             >
-                              <Trash2 className="size-3.5" />
-                              Désactiver
+                              {deactivateListMutation.isPending &&
+                              deactivateListMutation.variables === row.id ? (
+                                <Loader2 className="size-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="size-3.5" strokeWidth={2} />
+                              )}
+                              <span className="hidden sm:inline">Supprimer</span>
                             </button>
-                          ) : (
-                            <span className="text-xs text-slate-400">—</span>
-                          )}
+                          </div>
                         </td>
                       ) : null}
                     </tr>
@@ -534,210 +632,54 @@ export function AdminElectionDetailPage() {
               </table>
             </div>
 
-            {canListWrite && (
-              <form
-                onSubmit={onAddList}
-                className="mt-12 space-y-8 rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm dark:border-white/[0.08] dark:bg-slate-900/50"
-              >
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-white/[0.05]">
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                    Nouvelle liste candidate
-                  </h3>
-                  <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
-                    Configuration complète
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
-                      Nom de la liste
-                    </label>
-                    <input
-                      required
-                      value={newListName}
-                      onChange={(ev) => setNewListName(ev.target.value)}
-                      placeholder="Ex: Excellence UCAO"
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium outline-none transition-all focus:border-blue-500 focus:bg-white dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
-                      Slogan
-                    </label>
-                    <input
-                      value={newListSlogan}
-                      onChange={(ev) => setNewListSlogan(ev.target.value)}
-                      placeholder="Ex: Bâtir ensemble"
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium outline-none transition-all focus:border-blue-500 focus:bg-white dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
-                      Ordre d'affichage
-                    </label>
-                    <input
-                      type="number"
-                      min={1}
-                      value={newListOrder}
-                      onChange={(ev) => setNewListOrder(Number(ev.target.value) || 1)}
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium outline-none transition-all focus:border-blue-500 focus:bg-white dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
-                    Description & Programme
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={newListDescription}
-                    onChange={(ev) => setNewListDescription(ev.target.value)}
-                    placeholder="Détaillez les ambitions de la liste..."
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-sm font-medium outline-none transition-all focus:border-blue-500 focus:bg-white dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-                  {/* Membres */}
-                  <div className="space-y-4 rounded-2xl border border-slate-100 bg-slate-50/30 p-5 dark:border-white/[0.05] dark:bg-white/[0.02]">
-                    <div className="flex items-center gap-2">
-                      <Users className="size-4 text-blue-600" />
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">Membres de la liste</h4>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {newListMembers.map((m, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 dark:bg-white/[0.05] dark:text-slate-200 dark:ring-white/[0.1]"
-                        >
-                          <span className="font-bold">{m.name}</span>
-                          <span className="text-slate-400">({m.role})</span>
-                          <button
-                            type="button"
-                            onClick={() => setNewListMembers((prev) => prev.filter((_, i) => i !== idx))}
-                            className="ml-1 text-slate-400 hover:text-rose-500"
-                          >
-                            <X className="size-3" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                    <div className="flex gap-2">
-                      <input
-                        placeholder="Nom complet"
-                        value={memberName}
-                        onChange={(e) => setMemberName(e.target.value)}
-                        className="h-10 flex-1 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none focus:border-blue-500 dark:border-white/[0.1] dark:bg-slate-900"
-                      />
-                      <select
-                        value={memberRole}
-                        onChange={(e) => setMemberRole(e.target.value)}
-                        className="h-10 flex-1 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none focus:border-blue-500 dark:border-white/[0.1] dark:bg-slate-900"
-                      >
-                        {adminRoles.map((role) => (
-                          <option key={role} value={role}>
-                            {role}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (memberName && memberRole) {
-                            setNewListMembers((p) => [...p, { name: memberName, role: memberRole }])
-                            setMemberName('')
-                            // On garde le rôle actuel pour faciliter l'ajout successif si besoin
-                          }
-                        }}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-                      >
-                        <Plus className="size-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Vidéo de campagne */}
-                  <div className="space-y-4 rounded-2xl border border-slate-100 bg-slate-50/30 p-5 dark:border-white/[0.05] dark:bg-white/[0.02]">
-                    <div className="flex items-center gap-2">
-                      <Video className="size-4 text-rose-500" />
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">Vidéo de campagne</h4>
-                    </div>
-                    {newListVideo ? (
-                      <div className="flex items-center justify-between rounded-xl bg-emerald-50 p-3 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:ring-emerald-500/30">
-                        <div className="flex items-center gap-3">
-                          <FileVideo className="size-5 text-emerald-600" />
-                          <div className="flex flex-col">
-                            <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200">
-                              {newListVideo.name}
-                            </span>
-                            <span className="text-[10px] text-emerald-600/70">
-                              {(newListVideo.size / (1024 * 1024)).toFixed(2)} MB
-                            </span>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setNewListVideo(null)}
-                          className="text-emerald-600 hover:text-rose-600"
-                        >
-                          <X className="size-4" />
-                        </button>
-                      </div>
-                    ) : (
-                      <label className="flex h-24 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 transition-colors hover:border-blue-500 hover:bg-blue-50/30 dark:border-white/[0.1] dark:hover:border-blue-500/50">
-                        <Video className="mb-2 size-6 text-slate-400" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                          Charger une vidéo (MP4, WebM)
-                        </span>
-                        <input
-                          type="file"
-                          accept="video/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0]
-                            if (file) setNewListVideo(file)
-                          }}
-                        />
-                      </label>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between border-t border-slate-100 pt-6 dark:border-white/[0.05]">
-                  {listError ? (
-                    <p className="text-xs font-bold text-rose-500">{listError}</p>
-                  ) : (
-                    <div />
-                  )}
+            {activeLists.length > CANDIDATE_LIST_PAGE_SIZE && (
+              <div className="flex flex-col gap-4 border-t border-slate-100 pt-6 dark:border-white/5 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs text-slate-500">
+                  Affichage{' '}
+                  <span className="font-semibold text-slate-900 dark:text-white">
+                    {(candidateListPage - 1) * CANDIDATE_LIST_PAGE_SIZE + 1}–
+                    {Math.min(candidateListPage * CANDIDATE_LIST_PAGE_SIZE, activeLists.length)}
+                  </span>{' '}
+                  sur <span className="font-semibold text-slate-900 dark:text-white">{activeLists.length}</span> listes
+                </p>
+                <div className="flex items-center gap-2">
                   <button
-                    type="submit"
-                    disabled={createListMutation.isPending}
-                    className="inline-flex h-12 items-center gap-3 rounded-xl bg-blue-600 px-8 text-sm font-bold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 active:scale-[0.98] disabled:opacity-60"
+                    onClick={() => setCandidateListPage((p) => Math.max(1, p - 1))}
+                    disabled={candidateListPage === 1}
+                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-[10px] font-bold uppercase tracking-widest text-slate-700 transition hover:bg-slate-50 disabled:opacity-40 dark:border-white/10 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-white/5"
                   >
-                    {createListMutation.isPending ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <Plus className="size-4" />
-                    )}
-                    Enregistrer la liste
+                    <ChevronLeft className="size-3.5" strokeWidth={2.5} />
+                    Précédent
+                  </button>
+                  <span className="min-w-[80px] text-center text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                    Page {candidateListPage} / {totalCandidateListPages}
+                  </span>
+                  <button
+                    onClick={() => setCandidateListPage((p) => Math.min(totalCandidateListPages, p + 1))}
+                    disabled={candidateListPage === totalCandidateListPages}
+                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-[10px] font-bold uppercase tracking-widest text-slate-700 transition hover:bg-slate-50 disabled:opacity-40 dark:border-white/10 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-white/5"
+                  >
+                    Suivant
+                    <ChevronRight className="size-3.5" strokeWidth={2.5} />
                   </button>
                 </div>
-              </form>
+              </div>
             )}
-          </>
+          </div>
         )}
       </section>
-    </div>
-  )
-}
+      </div>
 
-function StatCard({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3 dark:border-white/[0.06] dark:bg-slate-900/40">
-      <p className="text-[10px] uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-1 font-mono text-xl font-semibold tabular-nums text-slate-950 dark:text-white">{value}</p>
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmLabel={confirmModal.confirmLabel}
+        variant={confirmModal.variant}
+        isLoading={deactivateListMutation.isPending || archiveMutation.isPending || publishMutation.isPending}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+      />
     </div>
   )
 }

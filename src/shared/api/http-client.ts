@@ -6,10 +6,7 @@ const DEFAULT_API_URL = 'http://localhost:3000/api'
 
 export const httpClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? DEFAULT_API_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  timeout: 0,
 })
 
 /** Une seule vague de refresh si plusieurs requêtes /admin reçoivent 401 en parallèle */
@@ -37,11 +34,23 @@ async function refreshAdminTokensOnce(): Promise<void> {
 
 httpClient.interceptors.request.use((config) => {
   const token = getAdminAccessToken()
-  if (!token) return config
   const url = typeof config.url === 'string' ? config.url : ''
-  if (url.startsWith('/admin')) {
+  
+  // Ajouter le token pour les routes /admin et /auth (sauf login)
+  if (token && (url.startsWith('/admin') || (url.startsWith('/auth') && !url.includes('login')))) {
     config.headers.Authorization = `Bearer ${token}`
   }
+
+  // Ne JAMAIS forcer le Content-Type pour les instances de FormData
+  if (config.data instanceof FormData) {
+    // Supprimer Content-Type pour laisser le navigateur mettre le boundary
+    config.headers.delete?.('Content-Type')
+    delete config.headers['Content-Type']
+  } else {
+    // Pour tout le reste, on s'assure que c'est du JSON
+    config.headers['Content-Type'] = 'application/json'
+  }
+
   return config
 })
 
@@ -56,7 +65,7 @@ httpClient.interceptors.response.use(
     }
 
     const url = originalRequest.url ?? ''
-    if (!url.startsWith('/admin')) {
+    if (!url.startsWith('/admin') && !url.startsWith('/auth')) {
       return Promise.reject(error)
     }
 

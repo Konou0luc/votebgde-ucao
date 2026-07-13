@@ -100,60 +100,60 @@ export function AdminScrutinsPage() {
         onConfirmDelete={handleConfirmDeleteElection}
       />
 
-      <header className="flex flex-col gap-6 border-b border-slate-200/90 pb-8 dark:border-white/[0.06] md:flex-row md:items-end md:justify-between">
+      <header className="flex flex-col gap-4 border-b border-slate-200/90 pb-6 dark:border-white/[0.06] md:flex-row md:items-end md:justify-between md:gap-6 md:pb-8">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Gestion</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white md:text-4xl">Élections</h1>
-          <p className="mt-3 max-w-[62ch] text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+          <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500 md:text-[11px]">Gestion</p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white md:text-4xl">Élections</h1>
+          <p className="mt-3 max-w-[62ch] text-xs leading-relaxed text-slate-600 dark:text-slate-400 md:text-sm">
             Liste issue de la base de données : intitulé, dates, statut et publication des résultats.
           </p>
         </div>
         {canCreate ? (
           <Link
             to={`${ADMIN_PRIVATE_PATH}/scrutins/nouveau`}
-            className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 md:self-auto"
+            className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 md:px-5 md:py-2.5 md:self-auto"
           >
-            <Plus className="size-4" strokeWidth={2} />
-            Nouvelle élection
+            <Plus className="size-3.5 md:size-4" strokeWidth={2} />
+            Nouveau
           </Link>
         ) : null}
       </header>
 
-      <div className="rounded-[2rem] border border-slate-200/90 bg-white p-1.5 shadow-sm dark:border-white/[0.06] dark:bg-slate-950/35 dark:shadow-none">
-        <div className="overflow-hidden rounded-[calc(2rem-6px)] border border-slate-100 bg-slate-50/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] dark:border-white/[0.05] dark:bg-slate-900/45 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+      <div className="rounded-[1.5rem] border border-slate-200/90 bg-white p-1 shadow-sm dark:border-white/[0.06] dark:bg-slate-950/35 dark:shadow-none md:rounded-[2rem] md:p-1.5">
+        <div className="overflow-hidden rounded-[calc(1.5rem-4px)] border border-slate-100 bg-slate-50/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] dark:border-white/[0.05] dark:bg-slate-900/45 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] md:rounded-[calc(2rem-6px)]">
           {scrutinsQuery.isLoading ? (
-            <div className="flex flex-col items-center justify-center gap-3 px-6 py-20">
-              <Loader2 className="size-8 animate-spin text-blue-600 dark:text-blue-400" strokeWidth={1.25} />
-              <p className="text-sm text-slate-600 dark:text-slate-400">Chargement des élections...</p>
+            <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 md:py-20">
+              <Loader2 className="size-6 animate-spin text-blue-600 dark:text-blue-400 md:size-8" strokeWidth={1.25} />
+              <p className="text-xs text-slate-600 dark:text-slate-400 md:text-sm">Chargement...</p>
             </div>
           ) : scrutinsQuery.isError ? (
-            <p className="px-6 py-12 text-sm text-rose-700 dark:text-rose-200">Impossible de charger la liste des élections.</p>
+            <p className="px-6 py-12 text-xs text-rose-700 dark:text-rose-200 md:text-sm">Erreur de chargement.</p>
           ) : !scrutinsQuery.data?.length ? (
-            <div className="px-6 py-16 text-center">
-              <p className="text-sm text-slate-600 dark:text-slate-400">Aucune élection pour le moment.</p>
+            <div className="px-6 py-12 text-center md:py-16">
+              <p className="text-xs text-slate-600 dark:text-slate-400 md:text-sm">Aucune élection pour le moment.</p>
               {canCreate ? (
                 <Link
                   to={`${ADMIN_PRIVATE_PATH}/scrutins/nouveau`}
-                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
                 >
                   <Plus className="size-4" />
-                  Créer une élection
+                  Créer
                 </Link>
               ) : (
-                <p className="mt-2 text-xs text-slate-500 dark:text-slate-600">
-                  Contactez un super-administrateur pour créer une élection.
+                <p className="mt-2 text-[10px] text-slate-500 dark:text-slate-600 md:text-xs">
+                  Contactez un admin.
                 </p>
               )}
             </div>
           ) : (
             <>
-              <div className="border-b border-slate-200 px-4 py-4 dark:border-white/[0.06] md:px-6">
+              <div className="border-b border-slate-200 px-4 py-3 dark:border-white/[0.06] md:px-6 md:py-4">
                 <label htmlFor="election-search" className="sr-only">
-                  Rechercher une élection
+                  Rechercher
                 </label>
                 <div className="relative max-w-md">
                   <Search
-                    className="pointer-events-none absolute left-3 top-1/2 size-[18px] -translate-y-1/2 text-slate-400"
+                    className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400 md:size-[18px]"
                     strokeWidth={1.25}
                   />
                   <input
@@ -161,15 +161,15 @@ export function AdminScrutinsPage() {
                     type="search"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Rechercher par titre, statut, dates…"
+                    placeholder="Rechercher…"
                     autoComplete="off"
-                    className="min-h-11 w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none ring-blue-500/0 transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+                    className="min-h-10 w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-4 text-xs text-slate-900 outline-none ring-blue-500/0 transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 md:min-h-11 md:pl-10 md:text-sm"
                   />
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[880px] border-collapse text-left text-sm">
+              <div className="overflow-x-auto scrollbar-hide">
+                <table className="w-full min-w-[700px] border-collapse text-left text-xs md:min-w-[880px] md:text-sm">
                   <thead>
                     <tr className="border-b border-slate-200 text-[11px] uppercase tracking-[0.15em] text-slate-500 dark:border-white/[0.06]">
                       <th className="px-6 py-4 font-medium">Titre</th>

@@ -1,20 +1,24 @@
 import { useCallback, useRef, type ClipboardEvent, type KeyboardEvent } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useSiteTheme } from './site-theme'
 
 const LEN = 6
 
 type OtpInputProps = {
   value: string
   onChange: (value: string) => void
-  isDark: boolean
+  isDark?: boolean // Optionnel car on utilise useSiteTheme maintenant
   id?: string
   disabled?: boolean
   'aria-label'?: string
 }
 
 /**
- * 6 chiffres en 3 + tiret + 3, navigation clavier, collage complet (SMS / e-mail).
+ * Entrée OTP à 6 chiffres ultra-fluide avec animations Framer Motion.
  */
-export function OtpInput({ value, onChange, isDark, id, disabled, 'aria-label': ariaLabel }: OtpInputProps) {
+export function OtpInput({ value, onChange, isDark: isDarkProp, id, disabled, 'aria-label': ariaLabel }: OtpInputProps) {
+  const { theme } = useSiteTheme()
+  const isDark = isDarkProp ?? theme === 'dark'
   const inputsRef = useRef<(HTMLInputElement | null)[]>([])
 
   const digits = Array.from({ length: LEN }, (_, i) => value[i] ?? '')
@@ -89,69 +93,127 @@ export function OtpInput({ value, onChange, isDark, id, disabled, 'aria-label': 
     }
   }
 
-  const boxClass = `flex h-12 w-9 shrink-0 items-center justify-center rounded-xl border text-center text-lg font-semibold tabular-nums outline-none transition sm:h-14 sm:w-10 sm:text-xl ${
-    isDark
-      ? 'border-slate-600 bg-slate-950 text-slate-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25'
-      : 'border-slate-300 bg-white text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
-  }`
+  const boxBaseClass = `relative flex h-14 w-11 shrink-0 items-center justify-center rounded-2xl border-2 text-center text-2xl font-bold tabular-nums outline-none transition-all duration-200 sm:h-16 sm:w-12 sm:text-3xl`
 
-  const dashClass = `select-none px-0.5 text-xl font-light sm:text-2xl ${isDark ? 'text-slate-500' : 'text-slate-400'}`
+  const getBoxClass = (index: number) => {
+    const isFocused = typeof document !== 'undefined' && document.activeElement === inputsRef.current[index]
+    const hasValue = digits[index] !== ''
+    const isCurrent = index === value.length || (index === LEN - 1 && value.length === LEN)
+
+    if (isDark) {
+      return `${boxBaseClass} ${
+        isFocused
+          ? 'border-blue-500 bg-blue-500/10 ring-4 ring-blue-500/20 text-white'
+          : hasValue
+            ? 'border-slate-700 bg-slate-800 text-white'
+            : 'border-slate-800 bg-slate-900/50 text-slate-400'
+      }`
+    }
+
+    return `${boxBaseClass} ${
+      isFocused
+        ? 'border-blue-600 bg-blue-50 ring-4 ring-blue-600/10 text-slate-950'
+        : hasValue
+          ? 'border-slate-200 bg-white text-slate-950 shadow-sm'
+          : 'border-slate-100 bg-slate-50/50 text-slate-400'
+    }`
+  }
 
   return (
     <div className="w-full">
       <div
         id={id}
-        className="flex flex-wrap items-center justify-center gap-1 sm:gap-1.5"
+        className="flex items-center justify-center gap-2 sm:gap-3"
         onPaste={handlePaste}
         role="group"
-        aria-label={ariaLabel ?? 'Code a six chiffres'}
+        aria-label={ariaLabel ?? 'Code à six chiffres'}
       >
-        {[0, 1, 2].map((i) => (
-          <input
-            key={i}
-            ref={(el) => {
-              inputsRef.current[i] = el
-            }}
-            type="text"
-            inputMode="numeric"
-            autoComplete={i === 0 ? 'one-time-code' : 'off'}
-            maxLength={i === 0 ? 6 : 1}
-            disabled={disabled}
-            value={digits[i]}
-            onFocus={() => handleFocus(i)}
-            onChange={(e) => handleChange(i, e.target.value)}
-            onKeyDown={(e) => handleKeyDown(i, e)}
-            onPaste={handlePaste}
-            className={boxClass}
-            aria-label={`Chiffre ${i + 1}`}
-          />
-        ))}
-        <span className={dashClass} aria-hidden>
-          –
-        </span>
-        {[3, 4, 5].map((i) => (
-          <input
-            key={i}
-            ref={(el) => {
-              inputsRef.current[i] = el
-            }}
-            type="text"
-            inputMode="numeric"
-            autoComplete="off"
-            maxLength={1}
-            disabled={disabled}
-            value={digits[i]}
-            onFocus={() => handleFocus(i)}
-            onChange={(e) => handleChange(i, e.target.value)}
-            onKeyDown={(e) => handleKeyDown(i, e)}
-            onPaste={handlePaste}
-            className={boxClass}
-            aria-label={`Chiffre ${i + 1}`}
-          />
-        ))}
+        <div className="flex gap-2 sm:gap-3">
+          {[0, 1, 2].map((i) => (
+            <motion.div
+              key={i}
+              initial={false}
+              animate={{
+                scale: digits[i] ? 1.05 : 1,
+                y: digits[i] ? -2 : 0
+              }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              className="relative"
+            >
+              <input
+                ref={(el) => {
+                  inputsRef.current[i] = el
+                }}
+                type="text"
+                inputMode="numeric"
+                autoComplete={i === 0 ? 'one-time-code' : 'off'}
+                maxLength={i === 0 ? 6 : 1}
+                disabled={disabled}
+                value={digits[i]}
+                onFocus={() => handleFocus(i)}
+                onChange={(e) => handleChange(i, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(i, e)}
+                className={getBoxClass(i)}
+                aria-label={`Chiffre ${i + 1}`}
+              />
+              {value.length === i && !disabled && (
+                <motion.div
+                  layoutId="otp-cursor"
+                  className="absolute bottom-3 left-1/2 h-1 w-4 -translate-x-1/2 rounded-full bg-blue-500"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: [0, 1, 0] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                />
+              )}
+            </motion.div>
+          ))}
+        </div>
+
+        <div className={`h-1 w-2 rounded-full ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`} />
+
+        <div className="flex gap-2 sm:gap-3">
+          {[3, 4, 5].map((i) => (
+            <motion.div
+              key={i}
+              initial={false}
+              animate={{
+                scale: digits[i] ? 1.05 : 1,
+                y: digits[i] ? -2 : 0
+              }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              className="relative"
+            >
+              <input
+                ref={(el) => {
+                  inputsRef.current[i] = el
+                }}
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                maxLength={1}
+                disabled={disabled}
+                value={digits[i]}
+                onFocus={() => handleFocus(i)}
+                onChange={(e) => handleChange(i, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(i, e)}
+                className={getBoxClass(i)}
+                aria-label={`Chiffre ${i + 1}`}
+              />
+              {value.length === i && !disabled && (
+                <motion.div
+                  layoutId="otp-cursor"
+                  className="absolute bottom-3 left-1/2 h-1 w-4 -translate-x-1/2 rounded-full bg-blue-500"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: [0, 1, 0] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                />
+              )}
+            </motion.div>
+          ))}
+        </div>
       </div>
-      <p className={`mt-2 text-center text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
-        Collez les 6 chiffres en une fois ou saisissez-les de gauche a droite.
+      <p className={`mt-6 text-center text-xs font-medium tracking-wide uppercase ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+        Sécurisé par VoteBGDE Cloud
       </p>
     </div>
   )

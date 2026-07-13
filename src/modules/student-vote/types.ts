@@ -1,7 +1,18 @@
+export type CandidateListMember = {
+  name: string
+  role: string
+}
+
 export type CandidateList = {
   id: string
   name: string
   slogan: string
+  description?: string
+  members?: CandidateListMember[]
+  actionPlan?: string[]
+  videoUrl?: string
+  imageUrl?: string
+  order?: number
 }
 
 export type ActiveScrutin = {

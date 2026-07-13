@@ -5,6 +5,7 @@ import { getAdminErrorMessage } from '../modules/admin-dashboard/api'
 import { useCreateElectionMutation } from '../modules/admin-dashboard/hooks'
 import { canWriteElection } from '../modules/admin-dashboard/permissions'
 import { useAdminAuthStore } from '../modules/admin-dashboard/auth-store'
+import { useToastStore } from '../shared/ui/toast-store'
 import type { ScrutinStatus } from '../modules/admin-dashboard/types'
 import { ADMIN_PRIVATE_PATH } from '../shared/constants/routes'
 import { toIsoFromDatetimeLocal } from '../shared/utils/datetime-local'
@@ -21,6 +22,7 @@ export function AdminElectionCreatePage() {
   const navigate = useNavigate()
   const admin = useAdminAuthStore((s) => s.admin)
   const createMutation = useCreateElectionMutation()
+  const pushToast = useToastStore((s) => s.pushToast)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [startsAt, setStartsAt] = useState('')
@@ -55,6 +57,7 @@ export function AdminElectionCreatePage() {
         endsAt: endsIso,
         status,
       })
+      pushToast('Élection créée avec succès.', 'success')
       navigate(`${ADMIN_PRIVATE_PATH}/scrutins/${created.id}`, { replace: true })
     } catch (err) {
       setError(getAdminErrorMessage(err, 'Création impossible.'))
@@ -91,7 +94,7 @@ export function AdminElectionCreatePage() {
 
       <form
         onSubmit={onSubmit}
-        className="mx-auto max-w-xl space-y-5 rounded-[2rem] border border-slate-200/90 bg-white p-6 shadow-sm dark:border-white/[0.06] dark:bg-slate-950/40 dark:shadow-none md:p-8"
+        className="mx-auto max-w-xl space-y-5 rounded-[2rem] border border-slate-200/90 bg-white p-4 shadow-sm dark:border-white/[0.06] dark:bg-slate-950/40 dark:shadow-none md:p-8"
       >
         <div>
           <label htmlFor="ce-title" className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-400">
@@ -119,6 +122,29 @@ export function AdminElectionCreatePage() {
             maxLength={1500}
           />
         </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="ce-status" className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-400">
+              Statut initial
+            </label>
+            <select
+              id="ce-status"
+              value={status}
+              onChange={(ev) => setStatus(ev.target.value as ScrutinStatus)}
+              className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
+            >
+              {statuses.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+
+
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="ce-start" className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-400">
@@ -146,23 +172,6 @@ export function AdminElectionCreatePage() {
               required
             />
           </div>
-        </div>
-        <div>
-          <label htmlFor="ce-status" className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-400">
-            Statut initial
-          </label>
-          <select
-            id="ce-status"
-            value={status}
-            onChange={(ev) => setStatus(ev.target.value as ScrutinStatus)}
-            className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
-          >
-            {statuses.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
-          </select>
         </div>
 
         {error ? (

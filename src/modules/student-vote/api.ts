@@ -23,6 +23,11 @@ type ActiveScrutinApiData = {
     id: string
     name: string
     slogan: string | null
+    description: string | null
+    members: Array<{ name: string; role: string }>
+    actionPlan: string[]
+    videoUrl: string | null
+    imageUrl: string | null
     order: number
   }>
 }
@@ -61,6 +66,12 @@ export async function getActiveScrutin(): Promise<ActiveScrutin> {
       id: row.id,
       name: row.name,
       slogan: row.slogan ?? '',
+      description: row.description ?? undefined,
+      members: row.members,
+      actionPlan: row.actionPlan,
+      videoUrl: row.videoUrl ?? undefined,
+      imageUrl: row.imageUrl ?? undefined,
+      order: row.order,
     })),
   }
 }

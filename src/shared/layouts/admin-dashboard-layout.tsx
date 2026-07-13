@@ -10,6 +10,9 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   BadgeCheck,
+  User,
+  Users,
+  Terminal,
   X,
   Moon,
   Sun,
@@ -37,6 +40,8 @@ export function AdminDashboardLayout({ children }: PropsWithChildren) {
   const navigate = useNavigate()
   const admin = useAdminAuthStore((s) => s.admin)
   const logout = useAdminAuthStore((s) => s.logout)
+
+  const isPasswordChangeRequired = admin?.needsPasswordChange
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [theme, setTheme] = useState<SiteTheme>(() => getInitialSiteTheme())
@@ -62,7 +67,7 @@ export function AdminDashboardLayout({ children }: PropsWithChildren) {
     'rounded-[calc(2rem-6px)] border border-slate-100 bg-white dark:border-white/[0.05] dark:bg-slate-950'
 
   return (
-    <div className="min-h-[100dvh] bg-slate-50 text-slate-900 dark:bg-[#030712] dark:text-slate-100">
+    <div className="min-h-[100dvh] w-full bg-slate-50 text-slate-900 dark:bg-[#030712] dark:text-slate-100">
       <div
         className="pointer-events-none fixed inset-0 hidden opacity-[0.35] dark:block"
         style={{
@@ -71,8 +76,8 @@ export function AdminDashboardLayout({ children }: PropsWithChildren) {
         }}
       />
 
-      <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-[1600px] gap-3 p-3 md:p-5 lg:p-6">
-        {/* Desktop sidebar */}
+      <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-[1600px] flex-col md:flex-row md:gap-3 md:p-5 lg:p-6">
+        {/* Desktop sidebar - hidden on mobile */}
         <aside
           className={`hidden shrink-0 overflow-x-clip transition-[width] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] md:block ${
             collapsed ? 'w-[88px]' : 'w-[272px]'
@@ -130,6 +135,7 @@ export function AdminDashboardLayout({ children }: PropsWithChildren) {
                   end
                   onClick={() => setMobileOpen(false)}
                   className={({ isActive }) => navLinkClass({ isActive, collapsed })}
+                  style={isPasswordChangeRequired ? { pointerEvents: 'none', opacity: 0.5 } : {}}
                 >
                   <LayoutGrid className="size-[18px] shrink-0" strokeWidth={1.25} />
                   {!collapsed && <span>Vue d&apos;ensemble</span>}
@@ -138,15 +144,51 @@ export function AdminDashboardLayout({ children }: PropsWithChildren) {
                   to={`${ADMIN_PRIVATE_PATH}/scrutins`}
                   onClick={() => setMobileOpen(false)}
                   className={({ isActive }) => navLinkClass({ isActive, collapsed })}
+                  style={isPasswordChangeRequired ? { pointerEvents: 'none', opacity: 0.5 } : {}}
                 >
                   <ChartPie className="size-[18px] shrink-0" strokeWidth={1.25} />
                   {!collapsed && <span>Élections</span>}
+                </NavLink>
+                {admin?.role === 'SUPER_ADMIN' && (
+                  <>
+                    <NavLink
+                      to={`${ADMIN_PRIVATE_PATH}/utilisateurs`}
+                      onClick={() => setMobileOpen(false)}
+                      className={({ isActive }) => navLinkClass({ isActive, collapsed })}
+                      style={isPasswordChangeRequired ? { pointerEvents: 'none', opacity: 0.5 } : {}}
+                    >
+                      <Users className="size-[18px] shrink-0" strokeWidth={1.25} />
+                      {!collapsed && <span>Utilisateurs</span>}
+                    </NavLink>
+                    <NavLink
+                      to={`${ADMIN_PRIVATE_PATH}/audit`}
+                      onClick={() => setMobileOpen(false)}
+                      className={({ isActive }) => navLinkClass({ isActive, collapsed })}
+                      style={isPasswordChangeRequired ? { pointerEvents: 'none', opacity: 0.5 } : {}}
+                    >
+                      <Terminal className="size-[18px] shrink-0" strokeWidth={1.25} />
+                      {!collapsed && <span>Audit</span>}
+                    </NavLink>
+                  </>
+                )}
+                <NavLink
+                  to={`${ADMIN_PRIVATE_PATH}/profil`}
+                  onClick={() => setMobileOpen(false)}
+                  className={({ isActive }) => navLinkClass({ isActive, collapsed })}
+                >
+                  <User className="size-[18px] shrink-0" strokeWidth={1.25} />
+                  {!collapsed && <span>Mon Profil</span>}
                 </NavLink>
               </nav>
 
               <div className="border-t border-slate-100 p-3 dark:border-white/[0.06]">
                 {!collapsed && admin && (
-                  <p className="mb-2 truncate px-1 text-xs text-slate-500">{admin.email}</p>
+                  <NavLink
+                    to={`${ADMIN_PRIVATE_PATH}/profil`}
+                    className="mb-2 block truncate px-1 text-xs text-slate-500 hover:text-blue-600 dark:hover:text-blue-400"
+                  >
+                    {admin.email}
+                  </NavLink>
                 )}
                 <button
                   type="button"
@@ -163,9 +205,9 @@ export function AdminDashboardLayout({ children }: PropsWithChildren) {
           </div>
         </aside>
 
-        {/* Mobile header */}
-        <div className="flex min-h-[100dvh] min-w-0 flex-1 flex-col md:hidden">
-          <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-slate-200/90 bg-white/90 px-4 py-3 backdrop-blur-xl dark:border-white/[0.06] dark:bg-slate-950/90">
+        {/* Mobile Header - only on small screens */}
+        <div className="flex w-full flex-col md:hidden">
+          <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-slate-200/90 bg-white/90 px-3 py-3 backdrop-blur-xl dark:border-white/[0.06] dark:bg-slate-950/90">
             <div className="flex items-center gap-2">
               <div className="flex size-9 items-center justify-center rounded-lg bg-blue-600/15 ring-1 ring-blue-600/25 dark:bg-blue-600/25 dark:ring-blue-500/30">
                 <BadgeCheck className="size-4 text-blue-600 dark:text-blue-400" strokeWidth={1.25} />
@@ -223,6 +265,7 @@ export function AdminDashboardLayout({ children }: PropsWithChildren) {
                       end
                       onClick={() => setMobileOpen(false)}
                       className={({ isActive }) => navLinkClass({ isActive, collapsed: false })}
+                      style={isPasswordChangeRequired ? { pointerEvents: 'none', opacity: 0.5 } : {}}
                     >
                       <LayoutGrid className="size-[18px]" strokeWidth={1.25} />
                       Vue d&apos;ensemble
@@ -231,9 +274,40 @@ export function AdminDashboardLayout({ children }: PropsWithChildren) {
                       to={`${ADMIN_PRIVATE_PATH}/scrutins`}
                       onClick={() => setMobileOpen(false)}
                       className={({ isActive }) => navLinkClass({ isActive, collapsed: false })}
+                      style={isPasswordChangeRequired ? { pointerEvents: 'none', opacity: 0.5 } : {}}
                     >
                       <ChartPie className="size-[18px]" strokeWidth={1.25} />
                       Élections
+                    </NavLink>
+                    {admin?.role === 'SUPER_ADMIN' && (
+                      <>
+                        <NavLink
+                          to={`${ADMIN_PRIVATE_PATH}/utilisateurs`}
+                          onClick={() => setMobileOpen(false)}
+                          className={({ isActive }) => navLinkClass({ isActive, collapsed: false })}
+                          style={isPasswordChangeRequired ? { pointerEvents: 'none', opacity: 0.5 } : {}}
+                        >
+                          <Users className="size-[18px]" strokeWidth={1.25} />
+                          Utilisateurs
+                        </NavLink>
+                        <NavLink
+                          to={`${ADMIN_PRIVATE_PATH}/audit`}
+                          onClick={() => setMobileOpen(false)}
+                          className={({ isActive }) => navLinkClass({ isActive, collapsed: false })}
+                          style={isPasswordChangeRequired ? { pointerEvents: 'none', opacity: 0.5 } : {}}
+                        >
+                          <Terminal className="size-[18px]" strokeWidth={1.25} />
+                          Audit
+                        </NavLink>
+                      </>
+                    )}
+                    <NavLink
+                      to={`${ADMIN_PRIVATE_PATH}/profil`}
+                      onClick={() => setMobileOpen(false)}
+                      className={({ isActive }) => navLinkClass({ isActive, collapsed: false })}
+                    >
+                      <User className="size-[18px]" strokeWidth={1.25} />
+                      Mon Profil
                     </NavLink>
                   </nav>
                   <div className="mt-auto border-t border-slate-100 pt-4 dark:border-white/[0.06]">
@@ -253,19 +327,19 @@ export function AdminDashboardLayout({ children }: PropsWithChildren) {
               </motion.div>
             </div>
           )}
-
-          <main className="flex-1 px-4 py-6">{children}</main>
         </div>
 
-        {/* Desktop main */}
-        <main className="hidden min-h-[calc(100dvh-2.5rem)] min-w-0 flex-1 flex-col md:flex">
+        {/* Main Content Area */}
+        <main className="min-w-0 flex-1 md:px-0 md:py-0">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: [0.32, 0.72, 0, 1] }}
-            className="flex-1"
+            className={`min-h-full w-full overflow-x-hidden border-0 md:border-l ${shellOuter} md:!rounded-[2rem] !rounded-none !border-0 md:!border`}
           >
-            {children}
+            <div className={`min-h-[calc(100dvh-5rem)] p-4 md:p-8 lg:p-10 ${shellInner} md:!rounded-[calc(2rem-6px)] !rounded-none !border-0 md:!border`}>
+              {children}
+            </div>
           </motion.div>
         </main>
       </div>

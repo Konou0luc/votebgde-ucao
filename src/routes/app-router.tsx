@@ -1,11 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import {
-  CandidateListStepPage,
-  ConfirmationStepPage,
-  MatriculeStepPage,
-  OtpStepPage,
-} from '../modules/student-vote/student-vote-steps'
+import { CandidateListStepPage, ConfirmationStepPage, MatriculeStepPage, OtpStepPage } from '../modules/student-vote/student-vote-steps'
 import { LandingPage } from '../pages/landing-page'
+import { CandidateDetailPage } from '../pages/candidate-detail-page'
 import { StudentVotePage } from '../pages/student-vote-page'
 import { VoteResultsPage } from '../pages/vote-results-page'
 import { NotFoundPage } from '../pages/not-found-page'
@@ -30,6 +26,14 @@ export function AppRouter() {
           element={
             <SiteLayout>
               <VoteResultsPage />
+            </SiteLayout>
+          }
+        />
+        <Route
+          path="/candidat/:id"
+          element={
+            <SiteLayout>
+              <CandidateDetailPage />
             </SiteLayout>
           }
         />

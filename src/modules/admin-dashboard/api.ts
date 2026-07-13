@@ -3,8 +3,11 @@ import { httpClient } from '../../shared/api/http-client'
 import type {
   AdminDashboardData,
   AdminLoginOtpPendingResponse,
+  AdminRecord,
   ApiEnvelope,
+  AuditLogRecord,
   CandidateListRecord,
+  CreateAdminPayload,
   CreateCandidateListPayload,
   CreateElectionPayload,
   ElectionResultsData,
@@ -12,6 +15,7 @@ import type {
   LoginResponse,
   ParticipationStats,
   ScrutinRecord,
+  UpdateAdminPayload,
   UpdateCandidateListPayload,
   UpdateElectionPayload,
   VerifyLoginOtpPayload,
@@ -96,19 +100,25 @@ export async function getCandidateListsForScrutin(scrutinId: string): Promise<Ca
 
 export async function postCandidateList(payload: CreateCandidateListPayload): Promise<CandidateListRecord> {
   const formData = new FormData()
-  Object.entries(payload).forEach(([key, value]) => {
-    if (key === 'video' && value instanceof File) {
-      formData.append('video', value)
-    } else if (key === 'members' || key === 'actionPlan') {
-      formData.append(key, JSON.stringify(value))
-    } else if (value !== undefined && value !== null) {
-      formData.append(key, String(value))
-    }
-  })
+  
+  formData.append('scrutinId', payload.scrutinId)
+  formData.append('name', payload.name)
+  formData.append('order', String(payload.order))
+  
+  if (payload.slogan) formData.append('slogan', payload.slogan)
+  if (payload.description) formData.append('description', payload.description)
+  
+  if (payload.members) {
+    formData.append('members', JSON.stringify(payload.members))
+  }
+  if (payload.actionPlan) {
+    formData.append('actionPlan', JSON.stringify(payload.actionPlan))
+  }
+  
+  if (payload.video instanceof File) formData.append('video', payload.video)
+  if (payload.image instanceof File) formData.append('image', payload.image)
 
-  const response = await httpClient.post<ApiEnvelope<CandidateListRecord>>('/admin/candidate-lists', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+  const response = await httpClient.post<ApiEnvelope<CandidateListRecord>>('/admin/candidate-lists', formData)
   return response.data.data
 }
 
@@ -117,22 +127,27 @@ export async function patchCandidateList(
   payload: UpdateCandidateListPayload,
 ): Promise<CandidateListRecord> {
   const formData = new FormData()
-  Object.entries(payload).forEach(([key, value]) => {
-    if (key === 'video' && value instanceof File) {
-      formData.append('video', value)
-    } else if (key === 'members' || key === 'actionPlan') {
-      formData.append(key, JSON.stringify(value))
-    } else if (value !== undefined && value !== null) {
-      formData.append(key, String(value))
-    }
-  })
+  
+  if (payload.name) formData.append('name', payload.name)
+  if (payload.order !== undefined) formData.append('order', String(payload.order))
+  if (payload.isActive !== undefined) formData.append('isActive', String(payload.isActive))
+  
+  if (payload.slogan !== undefined) formData.append('slogan', payload.slogan || '')
+  if (payload.description !== undefined) formData.append('description', payload.description || '')
+  
+  if (payload.members) {
+    formData.append('members', JSON.stringify(payload.members))
+  }
+  if (payload.actionPlan) {
+    formData.append('actionPlan', JSON.stringify(payload.actionPlan))
+  }
+  
+  if (payload.video instanceof File) formData.append('video', payload.video)
+  if (payload.image instanceof File) formData.append('image', payload.image)
 
   const response = await httpClient.patch<ApiEnvelope<CandidateListRecord>>(
     `/admin/candidate-lists/${id}`,
     formData,
-    {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    },
   )
   return response.data.data
 }
@@ -141,6 +156,35 @@ export async function deactivateCandidateList(id: string): Promise<CandidateList
   const response = await httpClient.delete<ApiEnvelope<CandidateListRecord>>(`/admin/candidate-lists/${id}`)
   return response.data.data
 }
+
+export async function getAdminUsers(): Promise<AdminRecord[]> {
+  const response = await httpClient.get<ApiEnvelope<AdminRecord[]>>('/admin/users')
+  return response.data.data
+}
+
+export async function postAdminUser(payload: CreateAdminPayload): Promise<AdminRecord> {
+  const response = await httpClient.post<ApiEnvelope<AdminRecord>>('/admin/users', payload)
+  return response.data.data
+}
+
+export async function patchAdminUser(id: string, payload: UpdateAdminPayload): Promise<AdminRecord> {
+  const response = await httpClient.patch<ApiEnvelope<AdminRecord>>(`/admin/users/${id}`, payload)
+  return response.data.data
+}
+
+export async function deleteAdminUser(id: string): Promise<void> {
+  await httpClient.delete(`/admin/users/${id}`)
+}
+
+export async function getAdminAuditLogs(): Promise<AuditLogRecord[]> {
+  const response = await httpClient.get<ApiEnvelope<AuditLogRecord[]>>('/admin/audit-logs')
+  return response.data.data
+}
+
+export async function purgeAdminAuditLogs(): Promise<void> {
+  await httpClient.delete('/admin/audit-logs')
+}
+
 
 function extractAttemptsLeft(errors: unknown): number | null {
   if (!Array.isArray(errors)) return null

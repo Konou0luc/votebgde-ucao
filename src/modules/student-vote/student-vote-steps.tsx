@@ -1,8 +1,18 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { 
+  CircleNotch, 
+  Fingerprint, 
+  EnvelopeSimple, 
+  ArrowRight, 
+  CaretRight,
+  ListChecks,
+  WarningCircle,
+  CheckCircle,
+  ShieldCheck,
+  UserCheck,
+} from '@phosphor-icons/react'
 import { getStudentFlowErrorMessage } from './api'
 import {
   useActiveScrutinQuery,
@@ -14,12 +24,14 @@ import { useStudentVoteFlowStore } from './flow-store'
 import { useToastStore } from '../../shared/ui/toast-store'
 import { OtpInput } from '../../shared/ui/otp-input'
 import { useSiteTheme } from '../../shared/ui/site-theme'
+import { CardShell } from '../../shared/ui/CardShell'
+import { Button } from '../../shared/ui/Button'
+import { motion } from 'framer-motion'
+import heroCampus from '../../../assets/ucao-messe.jpeg'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function MatriculeStepPage() {
-  const { theme } = useSiteTheme()
-  const isDark = theme === 'dark'
   const navigate = useNavigate()
   const activeScrutinQuery = useActiveScrutinQuery()
   const sendOtpMutation = useSendOtpMutation()
@@ -37,23 +49,11 @@ export function MatriculeStepPage() {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-
     const cleanMatricule = matricule.trim()
     const cleanEmail = email.trim()
-    if (!cleanMatricule) {
-      pushToast('Veuillez renseigner votre matricule.', 'error')
-      return
-    }
-    if (!cleanEmail) {
-      pushToast('Veuillez renseigner votre adresse e-mail.', 'error')
-      return
-    }
-    if (!EMAIL_RE.test(cleanEmail)) {
-      pushToast('Adresse e-mail invalide.', 'error')
-      return
-    }
-    if (!activeScrutinQuery.data?.id) {
-      pushToast('Aucun vote actif détecté pour le moment.', 'error')
+    
+    if (!cleanMatricule || !cleanEmail || !EMAIL_RE.test(cleanEmail)) {
+      pushToast('Veuillez remplir correctement tous les champs.', 'error')
       return
     }
 
@@ -64,135 +64,125 @@ export function MatriculeStepPage() {
       })
       setMatricule(cleanMatricule)
       setEmail(cleanEmail)
-      setScrutin(activeScrutinQuery.data.id, activeScrutinQuery.data.title)
+      setScrutin(activeScrutinQuery.data?.id || '', activeScrutinQuery.data?.title || '')
       setSessionToken(response.sessionToken)
       setOtpVerified(false)
       setSelectedList('', '')
-      pushToast(
-        'E-mail envoye avec succes. Consultez votre boite mail pour recuperer le code a six chiffres, puis saisissez-le ci-dessous.',
-        'success',
-      )
+      pushToast('Code OTP envoyé ! Vérifiez vos e-mails.', 'success')
       navigate('/vote/otp')
     } catch (error) {
-      pushToast(
-        `L envoi du code par e-mail a echoue. ${getStudentFlowErrorMessage(error)}`,
-        'error',
-      )
+      pushToast(`Erreur : ${getStudentFlowErrorMessage(error)}`, 'error')
     }
   }
 
-  const scrutinLoading = activeScrutinQuery.isPending || activeScrutinQuery.isFetching
-
   return (
-    <section
-      className={`rounded-3xl border p-6 shadow-[0_24px_45px_-30px_rgba(2,6,23,0.25)] ${
-        isDark ? 'border-slate-700 bg-slate-900' : 'border-slate-200 bg-white'
-      }`}
-    >
-      <h1 className={`text-2xl font-semibold tracking-tight ${isDark ? 'text-slate-100' : 'text-slate-950'}`}>
-        Verification matricule
-      </h1>
-      <p className={`mt-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-        Saisissez votre matricule et l e-mail sur lequel vous recevrez le code OTP.
-      </p>
+    <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] as const }}>
+      <div className="bg-white dark:bg-night-900 rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-100 dark:border-white/5 grid md:grid-cols-2 min-h-[600px]">
+        {/* Left: Image (Hidden on mobile) */}
+        <div className="hidden md:block relative overflow-hidden">
+          <img 
+            src={heroCampus} 
+            alt="UCAO Campus" 
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-brand-950/40 mix-blend-multiply" />
+          <div className="absolute inset-0 bg-gradient-to-t from-brand-950/80 via-transparent to-transparent" />
+          <div className="absolute bottom-12 left-12 right-12 text-white space-y-4">
+            <div className="size-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+              <ShieldCheck size={28} weight="duotone" />
+            </div>
+            <h2 className="font-display text-3xl font-bold leading-tight">Portail de Vote <br />Sécurisé</h2>
+            <p className="text-white/70 text-sm leading-relaxed max-w-xs">Identifiez-vous pour participer à l'élection institutionnelle de l'UCAO.</p>
+          </div>
+        </div>
 
-      <form onSubmit={onSubmit} className="mt-5 space-y-3">
-        <label htmlFor="matricule" className={`block text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
-          Matricule etudiant
-        </label>
-        <input
-          id="matricule"
-          name="matricule"
-          value={matricule}
-          onChange={(event) => setMatricule(event.target.value)}
-          placeholder="Ex: 23B12XYZ"
-          autoComplete="username"
-          className={`min-h-11 w-full rounded-xl border px-3 outline-none transition focus:border-blue-500 ${
-            isDark
-              ? 'border-slate-600 bg-slate-950 text-slate-100'
-              : 'border-slate-300 bg-white text-slate-900'
-          }`}
-        />
-        <label htmlFor="email" className={`block text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
-          Adresse e-mail
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="prenom.nom@exemple.com"
-          autoComplete="email"
-          className={`min-h-11 w-full rounded-xl border px-3 outline-none transition focus:border-blue-500 ${
-            isDark
-              ? 'border-slate-600 bg-slate-950 text-slate-100'
-              : 'border-slate-300 bg-white text-slate-900'
-          }`}
-        />
-        <button
-          type="submit"
-          disabled={sendOtpMutation.isPending || scrutinLoading}
-          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {sendOtpMutation.isPending ? (
-            <>
-              <Loader2 size={16} className="animate-spin" />
-              Envoi OTP...
-            </>
-          ) : scrutinLoading ? (
-            <>
-              <Loader2 size={16} className="animate-spin" />
-              Chargement du vote...
-            </>
-          ) : (
-            'Envoyer le code OTP'
-          )}
-        </button>
-      </form>
-    </section>
+        {/* Right: Form */}
+        <div className="p-8 sm:p-12 md:p-16 flex flex-col justify-center">
+          <div className="space-y-10">
+            <div>
+              <h3 className="font-display text-3xl font-bold text-slate-900 dark:text-white">Bienvenue</h3>
+              <p className="mt-2 text-slate-500 dark:text-slate-400">Veuillez saisir vos identifiants.</p>
+            </div>
+
+            <form onSubmit={onSubmit} className="space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Matricule</label>
+                  <div className="relative group">
+                    <Fingerprint className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-600 transition-colors" weight="light" />
+                    <input
+                      value={matricule}
+                      onChange={(e) => setMatricule(e.target.value)}
+                      placeholder="Ex: 23B12XYZ"
+                      className="tt-field-outline w-full rounded-2xl pl-12 h-14"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Email</label>
+                  <div className="relative group">
+                    <EnvelopeSimple className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-600 transition-colors" weight="light" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="votre.nom@ucao.edu"
+                      className="tt-field-outline w-full rounded-2xl pl-12 h-14"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={sendOtpMutation.isPending || activeScrutinQuery.isPending}
+                className="w-full !h-14 !text-base"
+                trailing={sendOtpMutation.isPending ? <CircleNotch className="animate-spin" size={18} /> : <ArrowRight size={18} weight="bold" />}
+              >
+                Continuer
+              </Button>
+            </form>
+
+            <p className="text-[10px] text-center text-slate-400 leading-relaxed">
+              Vos données sont protégées par le protocole de chiffrement RSA-4096.
+            </p>
+          </div>
+        </div>
+      </div>
+    </motion.div>
   )
 }
 
 export function OtpStepPage() {
-  const { theme } = useSiteTheme()
-  const isDark = theme === 'dark'
   const navigate = useNavigate()
   const verifyOtpMutation = useVerifyOtpMutation()
   const { pushToast } = useToastStore()
   const { matricule, sessionToken, setOtpVerified, setSessionToken } = useStudentVoteFlowStore()
   const [otp, setOtp] = useState('')
-  const flowSessionToken = sessionToken ?? ''
-  const missingSession = !matricule || !flowSessionToken
+  const { theme } = useSiteTheme()
 
   useEffect(() => {
-    if (missingSession) {
-      navigate('/vote', { replace: true })
-    }
-  }, [navigate, missingSession])
-
-  if (missingSession) return null
+    if (!matricule || !sessionToken) navigate('/vote')
+  }, [matricule, sessionToken, navigate])
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const otpDigits = otp.replace(/\D/g, '')
-    if (otpDigits.length !== 6) {
-      pushToast('Le code OTP doit contenir 6 chiffres.', 'error')
-      return
-    }
+    if (otp.length !== 6) return
 
     try {
       const response = await verifyOtpMutation.mutateAsync({
-        sessionToken: flowSessionToken,
-        otp: otpDigits,
+        sessionToken: sessionToken!,
+        otp,
       })
-
       if (response.otpVerified) {
         setOtpVerified(true)
         setSessionToken(response.sessionToken)
         navigate('/vote/liste')
       } else {
-        pushToast('Code OTP invalide. Veuillez reessayer.', 'error')
+        pushToast('Code OTP invalide.', 'error')
       }
     } catch (error) {
       pushToast(getStudentFlowErrorMessage(error), 'error')
@@ -200,250 +190,178 @@ export function OtpStepPage() {
   }
 
   return (
-    <section
-      className={`rounded-3xl border p-6 shadow-[0_24px_45px_-30px_rgba(2,6,23,0.25)] ${
-        isDark ? 'border-slate-700 bg-slate-900' : 'border-slate-200 bg-white'
-      }`}
-    >
-      <h1 className={`text-2xl font-semibold tracking-tight ${isDark ? 'text-slate-100' : 'text-slate-950'}`}>
-        Verification OTP
-      </h1>
-      <p className={`mt-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-        Saisissez le code recu sur votre boite e-mail pour continuer.
-      </p>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] as const }}>
+      <CardShell className="max-w-md mx-auto text-center">
+        <div className="space-y-10">
+          <div className="mx-auto flex size-20 items-center justify-center rounded-3xl bg-brand-600 text-white shadow-xl shadow-brand-500/20">
+            <UserCheck size={40} weight="duotone" />
+          </div>
+          <div>
+            <h2 className="font-display text-2xl font-semibold text-slate-900 dark:text-white">Validation</h2>
+            <p className="mt-4 text-slate-500 dark:text-slate-400">Un code de vérification à 6 chiffres a été envoyé à votre email institutionnel.</p>
+          </div>
 
-      <form onSubmit={onSubmit} className="mt-5 space-y-4">
-        <span className={`block text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Code OTP</span>
-        <OtpInput
-          id="otp"
-          value={otp}
-          onChange={setOtp}
-          isDark={isDark}
-          disabled={verifyOtpMutation.isPending}
-          aria-label="Code de verification a six chiffres"
-        />
-        <button
-          type="submit"
-          disabled={verifyOtpMutation.isPending}
-          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {verifyOtpMutation.isPending ? (
-            <>
-              <Loader2 size={16} className="animate-spin" />
-              Verification...
-            </>
-          ) : (
-            'Verifier le code OTP'
-          )}
-        </button>
-      </form>
-    </section>
+          <form onSubmit={onSubmit} className="space-y-10">
+            <div className="flex justify-center">
+              <OtpInput value={otp} onChange={setOtp} isDark={theme === 'dark'} disabled={verifyOtpMutation.isPending} />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={verifyOtpMutation.isPending || otp.length !== 6}
+              className="w-full !py-4"
+              trailing={verifyOtpMutation.isPending ? <CircleNotch className="animate-spin" size={18} /> : null}
+            >
+              Confirmer l'identité
+            </Button>
+
+            <div className="pt-6 border-t border-slate-100 dark:border-white/5">
+              <p className="text-xs text-slate-500 dark:text-slate-500">
+                Vous n'avez pas reçu le code ? <button type="button" className="font-bold text-brand-600 hover:text-brand-700 transition-colors">Renvoyer le code</button>
+              </p>
+            </div>
+          </form>
+        </div>
+      </CardShell>
+    </motion.div>
   )
 }
 
 export function CandidateListStepPage() {
-  const { theme } = useSiteTheme()
-  const isDark = theme === 'dark'
   const navigate = useNavigate()
   const activeScrutinQuery = useActiveScrutinQuery()
-  const { pushToast } = useToastStore()
-  const { isOtpVerified, scrutinId, selectedListId, setScrutin, setSelectedList } =
-    useStudentVoteFlowStore()
-  const shouldRedirectToMatricule = !isOtpVerified
+  const { isOtpVerified, selectedListId, setSelectedList } = useStudentVoteFlowStore()
+
+  useEffect(() => {
+    if (!isOtpVerified) navigate('/vote')
+  }, [isOtpVerified, navigate])
 
   const candidateLists = activeScrutinQuery.data?.candidateLists ?? []
-  const listsLoading = activeScrutinQuery.isPending || activeScrutinQuery.isFetching
-
-  useEffect(() => {
-    if (shouldRedirectToMatricule) {
-      navigate('/vote', { replace: true })
-    }
-  }, [navigate, shouldRedirectToMatricule])
-
-  useEffect(() => {
-    if (!scrutinId && activeScrutinQuery.data?.id) {
-      setScrutin(activeScrutinQuery.data.id, activeScrutinQuery.data.title)
-    }
-  }, [activeScrutinQuery.data?.id, activeScrutinQuery.data?.title, scrutinId, setScrutin])
-
-  useEffect(() => {
-    if (!isOtpVerified) return
-    if (activeScrutinQuery.isError) {
-      pushToast(getStudentFlowErrorMessage(activeScrutinQuery.error), 'error')
-    }
-  }, [activeScrutinQuery.error, activeScrutinQuery.isError, isOtpVerified, pushToast])
-
-  if (shouldRedirectToMatricule) return null
 
   return (
-    <section
-      className={`rounded-3xl border p-6 shadow-[0_24px_45px_-30px_rgba(2,6,23,0.25)] ${
-        isDark ? 'border-slate-700 bg-slate-900' : 'border-slate-200 bg-white'
-      }`}
-    >
-      <h1 className={`text-2xl font-semibold tracking-tight ${isDark ? 'text-slate-100' : 'text-slate-950'}`}>
-        Selection de liste candidate
-      </h1>
-      <p className={`mt-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-        Les listes proviennent du vote actif. Choisissez votre liste puis continuez.
-      </p>
-
-      <div className="mt-5 space-y-2">
-        {listsLoading && (
-          <div className="animate-pulse space-y-2">
-            <div className={`h-14 rounded-xl ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`} />
-            <div className={`h-14 rounded-xl ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`} />
-          </div>
-        )}
-
-        {!listsLoading &&
-          candidateLists.map((candidateList) => {
-            const isSelected = selectedListId === candidateList.id
-            return (
-              <button
-                key={candidateList.id}
-                type="button"
-                onClick={() => setSelectedList(candidateList.id, candidateList.name)}
-                className={`w-full rounded-xl border px-3 py-3 text-left transition ${
-                  isSelected
-                    ? isDark
-                      ? 'border-blue-600 bg-blue-950/30'
-                      : 'border-blue-300 bg-blue-50'
-                    : isDark
-                      ? 'border-slate-700 bg-slate-950 hover:border-slate-500'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
-                }`}
-              >
-                <p className={`text-sm font-medium ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
-                  {candidateList.name}
-                </p>
-                {candidateList.slogan ? (
-                  <p className={`mt-1 text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                    {candidateList.slogan}
-                  </p>
-                ) : null}
-              </button>
-            )
-          })}
-
-        {!listsLoading && candidateLists.length === 0 ? (
-          <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-            Aucune liste candidate disponible pour ce vote.
-          </p>
-        ) : null}
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] as const }} className="space-y-10">
+      <div className="mb-10 border-b border-slate-100 pb-8 dark:border-white/5">
+        <h2 className="font-display text-3xl font-semibold text-slate-900 dark:text-white">Bulletins de Vote</h2>
+        <p className="mt-4 text-lg text-slate-500 dark:text-slate-400">Sélectionnez la liste candidate pour laquelle vous souhaitez voter.</p>
       </div>
 
-      <button
-        type="button"
-        disabled={!selectedListId || listsLoading || candidateLists.length === 0}
-        onClick={() => navigate('/vote/confirmation')}
-        className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-blue-600 px-4 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
-      >
-        Continuer
-      </button>
-    </section>
+      <div className="grid gap-6">
+        {candidateLists.map((list) => (
+          <button
+            key={list.id}
+            onClick={() => setSelectedList(list.id, list.name)}
+            className="block text-left group w-full outline-none"
+          >
+            <CardShell className={`transition-all duration-500 ${
+              selectedListId === list.id
+                ? 'ring-2 ring-brand-600 bg-brand-50/50 dark:bg-brand-900/10'
+                : 'hover:ring-brand-600/30'
+            }`}>
+              <div className="flex items-center gap-6">
+                <div className={`flex size-16 items-center justify-center rounded-2xl transition-all duration-500 ${
+                  selectedListId === list.id ? 'bg-brand-600 text-white shadow-xl shadow-brand-500/20' : 'bg-slate-50 text-slate-400 dark:bg-white/5'
+                }`}>
+                  <ListChecks size={32} weight={selectedListId === list.id ? "fill" : "light"} />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">{list.name}</h4>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 italic font-display">« {list.slogan} »</p>
+                </div>
+                <div className={`size-8 rounded-full border-2 transition-all duration-500 flex items-center justify-center ${
+                  selectedListId === list.id ? 'border-brand-600 bg-brand-600' : 'border-slate-200 dark:border-white/10'
+                }`}>
+                  {selectedListId === list.id && <CheckCircle size={20} weight="bold" className="text-white" />}
+                </div>
+              </div>
+            </CardShell>
+          </button>
+        ))}
+      </div>
+
+      <div className="flex justify-end pt-10">
+        <Link to="/vote/confirmation" className={!selectedListId ? 'pointer-events-none opacity-50' : ''}>
+          <Button disabled={!selectedListId} trailing={<CaretRight size={18} weight="bold" />}>
+            Continuer vers la confirmation
+          </Button>
+        </Link>
+      </div>
+    </motion.div>
   )
 }
 
 export function ConfirmationStepPage() {
-  const { theme } = useSiteTheme()
-  const isDark = theme === 'dark'
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
   const voteMutation = useVoteMutation()
   const { pushToast } = useToastStore()
-  const { matricule, sessionToken, selectedListId, selectedListName, resetFlow } =
-    useStudentVoteFlowStore()
-  const shouldRedirectToMatricule = !matricule || !selectedListId || !sessionToken
+  const {
+    isOtpVerified,
+    selectedListId,
+    selectedListName,
+    sessionToken,
+    resetFlow,
+  } = useStudentVoteFlowStore()
 
   useEffect(() => {
-    if (shouldRedirectToMatricule) {
-      navigate('/vote', { replace: true })
-    }
-  }, [navigate, shouldRedirectToMatricule])
+    if (!isOtpVerified || !selectedListId) navigate('/vote')
+  }, [isOtpVerified, selectedListId, navigate])
 
-  if (shouldRedirectToMatricule) return null
-  const confirmedSelectedListId = selectedListId
-  const confirmedSessionToken = sessionToken
+  async function onVote() {
+    if (!sessionToken || !selectedListId) return
 
-  async function onConfirmVote() {
     try {
-      const response = await voteMutation.mutateAsync({
-        sessionToken: confirmedSessionToken,
-        candidateListId: confirmedSelectedListId,
+      await voteMutation.mutateAsync({
+        sessionToken,
+        candidateListId: selectedListId,
       })
-      if (response.success) {
-        pushToast('Vote enregistre avec succes.', 'success')
-        resetFlow()
-        await queryClient.invalidateQueries({ queryKey: ['scrutin-published-results'] })
-        await queryClient.invalidateQueries({ queryKey: ['active-scrutin'] })
-        navigate('/resultats', { replace: true, state: { fromVote: true } })
-      } else {
-        pushToast('Impossible de confirmer le vote pour le moment.', 'error')
-      }
+      pushToast('Votre vote a été enregistré !', 'success')
+      resetFlow()
+      navigate('/', { state: { fromVote: true } })
     } catch (error) {
-      pushToast(getStudentFlowErrorMessage(error), 'error')
+      pushToast(`Erreur lors du vote : ${getStudentFlowErrorMessage(error)}`, 'error')
     }
   }
 
   return (
-    <section
-      className={`rounded-3xl border p-6 shadow-[0_24px_45px_-30px_rgba(2,6,23,0.25)] ${
-        isDark ? 'border-slate-700 bg-slate-900' : 'border-slate-200 bg-white'
-      }`}
-    >
-      <h1 className={`text-2xl font-semibold tracking-tight ${isDark ? 'text-slate-100' : 'text-slate-950'}`}>
-        Confirmation du vote
-      </h1>
-      <p className={`mt-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-        Verifiez vos informations avant validation definitive.
-      </p>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] as const }}>
+      <CardShell className="max-w-xl mx-auto text-center">
+        <div className="space-y-10">
+          <div className="mx-auto flex size-20 items-center justify-center rounded-3xl bg-amber-50 text-amber-600 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30">
+            <WarningCircle size={40} weight="duotone" />
+          </div>
+          <div>
+            <h2 className="font-display text-2xl font-semibold text-slate-900 dark:text-white">Confirmation Finale</h2>
+            <p className="mt-4 text-slate-500 dark:text-slate-400">Veuillez confirmer votre choix. Une fois validé, votre vote ne pourra plus être modifié.</p>
+          </div>
 
-      <div
-        className={`mt-5 space-y-2 rounded-xl border p-4 text-sm ${
-          isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-slate-50'
-        }`}
-      >
-        <p>
-          <span className={`font-medium ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Matricule:</span>{' '}
-          <span className={`${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{matricule}</span>
-        </p>
-        <p>
-          <span className={`font-medium ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Liste choisie:</span>{' '}
-          <span className={`${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{selectedListName ?? selectedListId}</span>
-        </p>
-      </div>
+          <div className="p-8 rounded-[2rem] bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
+            <p className="tt-overline mb-4">Votre sélection</p>
+            <p className="font-display text-3xl font-semibold text-brand-600">{selectedListName}</p>
+          </div>
 
-      <button
-        type="button"
-        onClick={onConfirmVote}
-        disabled={voteMutation.isPending}
-        className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 font-medium text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-70"
-      >
-        {voteMutation.isPending ? (
-          <>
-            <Loader2 size={16} className="animate-spin" />
-            Confirmation...
-          </>
-        ) : (
-          'Confirmer mon vote'
-        )}
-      </button>
+          <div className="space-y-4">
+            <Button
+              onClick={onVote}
+              disabled={voteMutation.isPending}
+              className="w-full !py-4"
+              trailing={voteMutation.isPending ? <CircleNotch className="animate-spin" size={18} /> : <CheckCircle size={18} weight="bold" />}
+            >
+              Confirmer et Déposer mon bulletin
+            </Button>
+            <button
+              onClick={() => navigate('/vote/liste')}
+              disabled={voteMutation.isPending}
+              className="text-sm font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors"
+            >
+              Modifier mon choix
+            </button>
+          </div>
 
-      <button
-        type="button"
-        onClick={() => {
-          resetFlow()
-          navigate('/vote')
-        }}
-        className={`mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-xl border px-4 font-medium transition ${
-          isDark
-            ? 'border-slate-600 bg-slate-950 text-slate-200 hover:bg-slate-800'
-            : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-        }`}
-      >
-        Recommencer
-      </button>
-    </section>
+          <div className="pt-8 border-t border-slate-100 dark:border-white/5 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            <ShieldCheck size={18} weight="duotone" className="text-brand-600/50" />
+            Vote Anonyme & Sécurisé
+          </div>
+        </div>
+      </CardShell>
+    </motion.div>
   )
 }

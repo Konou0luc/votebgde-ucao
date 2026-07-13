@@ -2,13 +2,14 @@ import type { ApiEnvelope } from '../student-vote/types'
 
 export type { ApiEnvelope }
 
-export type AdminRole = string
+export type AdminRole = 'SUPER_ADMIN' | 'STANDARD_ADMIN'
 
 export type AdminUser = {
   id: string
   email: string
   role: AdminRole
   permissions: string[]
+  needsPasswordChange: boolean
 }
 
 export type LoginPayload = {
@@ -52,10 +53,15 @@ export type AdminDashboardData = {
 
 export type ScrutinStatus = 'DRAFT' | 'SCHEDULED' | 'OPEN' | 'CLOSED' | 'ARCHIVED'
 
+export type StudentLevel = 'L1' | 'L2' | 'L3'
+
 export type ScrutinRecord = {
   id: string
   title: string
   description: string | null
+  bannerUrl: string | null
+  targetDepartment: string | null
+  targetLevel: StudentLevel | null
   startsAt: string
   endsAt: string
   status: string
@@ -67,6 +73,9 @@ export type ScrutinRecord = {
 export type CreateElectionPayload = {
   title: string
   description?: string
+  bannerUrl?: string
+  targetDepartment?: string
+  targetLevel?: StudentLevel
   startsAt: string
   endsAt: string
   status?: ScrutinStatus
@@ -75,6 +84,9 @@ export type CreateElectionPayload = {
 export type UpdateElectionPayload = {
   title?: string
   description?: string
+  bannerUrl?: string
+  targetDepartment?: string
+  targetLevel?: StudentLevel
   startsAt?: string
   endsAt?: string
   status?: ScrutinStatus
@@ -122,6 +134,7 @@ export type CandidateListRecord = {
   members: CandidateListMember[]
   actionPlan: string[]
   videoUrl: string | null
+  imageUrl: string | null
   order: number
   isActive: boolean
   createdAt: string
@@ -136,6 +149,7 @@ export type CreateCandidateListPayload = {
   members?: CandidateListMember[]
   actionPlan?: string[]
   video?: File | null // Pour l'upload
+  image?: File | null // Pour l'upload
   order: number
 }
 
@@ -146,6 +160,48 @@ export type UpdateCandidateListPayload = {
   members?: CandidateListMember[]
   actionPlan?: string[]
   video?: File | null // Pour l'upload
+  image?: File | null // Pour l'upload
   order?: number
   isActive?: boolean
 }
+
+export type AdminRecord = {
+  id: string
+  email: string
+  role: 'SUPER_ADMIN' | 'STANDARD_ADMIN'
+  permissions: string[]
+  isActive: boolean
+  lastLoginAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+
+export type AuditLogRecord = {
+  id: string
+  adminId: string | null
+  action: string
+  entity: string
+  entityId: string | null
+  severity: string
+  ipAddress: string | null
+  userAgent: string | null
+  metadata: any
+  createdAt: string
+  admin?: {
+    id: string
+    email: string
+  } | null
+}
+
+export type CreateAdminPayload = {
+  email: string
+  password?: string
+  role: 'SUPER_ADMIN' | 'STANDARD_ADMIN'
+  permissions: string[]
+}
+
+export type UpdateAdminPayload = Partial<CreateAdminPayload> & {
+  isActive?: boolean
+}
+

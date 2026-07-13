@@ -71,7 +71,7 @@ export function SiteLayout({ children }: PropsWithChildren) {
               rounded-full border transition-all duration-500
               ${scrolled 
                 ? 'bg-white/70 dark:bg-night-900/70 backdrop-blur-2xl border-slate-200/50 dark:border-white/10 shadow-soft' 
-                : 'bg-white/40 dark:bg-white/5 backdrop-blur-md border-transparent'}
+                : 'bg-white/40 dark:bg-white/5 backdrop-blur-md border-transparent shadow-md'}
             `}
           >
             {/* Logo Section */}

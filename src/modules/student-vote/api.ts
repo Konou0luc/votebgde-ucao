@@ -144,9 +144,13 @@ export async function getPublishedScrutinResults(scrutinId: string): Promise<Pub
   }
 }
 
+export function isOtpExpiredError(error: unknown): boolean {
+  return isAxiosError(error) && error.response?.status === 410
+}
+
 export function getStudentFlowErrorMessage(error: unknown) {
   if (!isAxiosError(error)) {
-    return 'Une erreur inattendue est survenue. Veuillez reessayer.'
+    return 'Une erreur inattendue est survenue. Veuillez réessayer.'
   }
 
   const statusCode = error.response?.status
@@ -163,27 +167,27 @@ export function getStudentFlowErrorMessage(error: unknown) {
   }
 
   if (statusCode === 401) {
-    return backendMessage || 'Code OTP invalide. Verifiez et reessayez.'
+    return backendMessage || 'Code incorrect. Vérifiez et réessayez.'
   }
 
   if (statusCode === 404) {
-    return backendMessage || 'Votre matricule n est pas autorise pour ce scrutin.'
+    return backendMessage || 'Votre matricule n’est pas autorisé pour ce vote.'
   }
 
   if (statusCode === 409) {
-    return backendMessage || 'Un vote a deja ete enregistre pour ce matricule.'
+    return backendMessage || 'Un vote a déjà été enregistré pour ce matricule.'
   }
 
   if (statusCode === 410) {
-    return backendMessage || 'Session ou code expire. Demandez un nouveau code OTP.'
+    return 'Votre code a expiré. Demandez un nouveau code pour continuer.'
   }
 
   if (statusCode === 422) {
-    return backendMessage || 'Donnees etudiant incompatibles avec le scrutin.'
+    return backendMessage || 'Informations étudiant incompatibles avec ce vote.'
   }
 
   if (statusCode === 423) {
-    return backendMessage || 'Trop de tentatives. Reessayez plus tard.'
+    return backendMessage || 'Trop de tentatives. Réessayez plus tard.'
   }
 
   if (statusCode === 429) {
@@ -191,11 +195,11 @@ export function getStudentFlowErrorMessage(error: unknown) {
   }
 
   if (statusCode === 403) {
-    return backendMessage || 'Action non autorisee pour le moment.'
+    return backendMessage || 'Action non autorisée pour le moment.'
   }
 
   if (statusCode === 503) {
-    return backendMessage || 'Service temporairement indisponible. Reessayez plus tard.'
+    return backendMessage || 'Service temporairement indisponible. Réessayez plus tard.'
   }
 
   if (backendMessage) {

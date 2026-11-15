@@ -117,7 +117,7 @@ export function AdminProfilePage() {
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Informations générales */}
         <div className="lg:col-span-1">
-          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/[0.06] dark:bg-slate-900/50">
+          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/[0.07] dark:bg-night-900/60">
             <div className="flex flex-col items-center text-center">
               <div className="flex size-20 items-center justify-center rounded-2xl bg-blue-600/10 text-blue-600 ring-1 ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20">
                 <User className="size-10" strokeWidth={1.25} />
@@ -140,8 +140,8 @@ export function AdminProfilePage() {
 
         {/* Modification du mot de passe */}
         <div className="lg:col-span-2">
-          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-slate-900/50">
-            <div className="border-b border-slate-100 p-6 dark:border-white/[0.06]">
+          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-white/[0.07] dark:bg-night-900/60">
+            <div className="border-b border-slate-100 p-6 dark:border-white/[0.07]">
               <div className="flex items-center gap-3">
                 <div className="flex size-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 ring-1 ring-amber-500/20 dark:bg-amber-500/20 dark:text-amber-400">
                   <Lock className="size-5" strokeWidth={1.5} />
@@ -164,7 +164,7 @@ export function AdminProfilePage() {
                     required
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium outline-none transition focus:border-blue-500 focus:bg-white dark:border-white/10 dark:bg-white/5"
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 focus:bg-white dark:border-white/10 dark:bg-white/5"
                   />
                 </div>
 
@@ -179,7 +179,7 @@ export function AdminProfilePage() {
                       minLength={8}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium outline-none transition focus:border-blue-500 focus:bg-white dark:border-white/10 dark:bg-white/5"
+                      className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 focus:bg-white dark:border-white/10 dark:bg-white/5"
                     />
                   </div>
                   <div className="space-y-2">
@@ -192,7 +192,7 @@ export function AdminProfilePage() {
                       minLength={8}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium outline-none transition focus:border-blue-500 focus:bg-white dark:border-white/10 dark:bg-white/5"
+                      className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 focus:bg-white dark:border-white/10 dark:bg-white/5"
                     />
                   </div>
                 </div>

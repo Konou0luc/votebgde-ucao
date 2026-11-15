@@ -50,7 +50,7 @@ function statusBadgeClass(status: string) {
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2.5 dark:border-white/[0.06] dark:bg-slate-900/40 md:rounded-2xl md:px-4 md:py-3">
+    <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2.5 dark:border-white/[0.07] dark:bg-night-900/60 md:rounded-2xl md:px-4 md:py-3">
       <p className="text-[9px] uppercase tracking-wide text-slate-500 md:text-[10px]">{label}</p>
       <p className="mt-1 font-mono text-lg font-semibold tabular-nums text-slate-950 dark:text-white md:text-xl">{value}</p>
     </div>
@@ -239,7 +239,7 @@ export function AdminElectionDetailPage() {
 
   if (scrutinsQuery.isError || !election) {
     return (
-      <div className="rounded-[2rem] border border-rose-200 bg-rose-50 px-6 py-8 text-sm text-rose-900 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-100">
+      <div className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-8 text-sm text-rose-900 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-100">
         <p>Élection introuvable ou liste non à jour.</p>
         <Link to={`${ADMIN_PRIVATE_PATH}/scrutins`} className="mt-4 inline-block font-medium text-blue-600 dark:text-blue-400">
           Retour aux élections
@@ -251,7 +251,7 @@ export function AdminElectionDetailPage() {
   return (
     <div className="max-w-full pb-12 overflow-x-hidden">
       <div className="space-y-6 md:space-y-10">
-        <header className="border-b border-slate-200/90 pb-6 dark:border-white/[0.06] md:pb-8">
+        <header className="border-b border-slate-200/80 pb-6 dark:border-white/[0.07] md:pb-8">
         <Link
           to={`${ADMIN_PRIVATE_PATH}/scrutins`}
           className="mb-4 inline-flex items-center gap-2 text-[10px] font-medium uppercase tracking-widest text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
@@ -320,7 +320,7 @@ export function AdminElectionDetailPage() {
       {editing && canWrite ? (
         <form
           onSubmit={onSaveElection}
-          className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-xl shadow-slate-200/50 dark:border-white/[0.08] dark:bg-slate-900 dark:shadow-none md:rounded-[2.5rem] md:p-10"
+          className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-200/50 dark:border-white/[0.08] dark:bg-night-900 dark:shadow-none md:rounded-3xl md:p-10"
         >
           <div className="space-y-6 md:space-y-8">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -330,7 +330,7 @@ export function AdminElectionDetailPage() {
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-medium outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-slate-900"
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-900"
                 />
               </div>
               <div className="space-y-2.5">
@@ -338,7 +338,7 @@ export function AdminElectionDetailPage() {
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as ScrutinStatus)}
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-3 text-base font-medium outline-none focus:border-blue-500 dark:border-white/10 dark:bg-slate-900"
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-3 text-base font-medium outline-none focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-900"
                 >
                   <option value="DRAFT">Brouillon</option>
                   <option value="SCHEDULED">Planifié</option>
@@ -355,7 +355,7 @@ export function AdminElectionDetailPage() {
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white p-4 text-base font-medium outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-slate-900"
+                className="w-full rounded-xl border border-slate-200 bg-white p-4 text-base font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-900"
               />
             </div>
 
@@ -367,7 +367,7 @@ export function AdminElectionDetailPage() {
                   required
                   value={startsAt}
                   onChange={(e) => setStartsAt(e.target.value)}
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-medium outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-slate-900"
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-900"
                 />
               </div>
               <div className="space-y-2.5">
@@ -377,7 +377,7 @@ export function AdminElectionDetailPage() {
                   required
                   value={endsAt}
                   onChange={(e) => setEndsAt(e.target.value)}
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-medium outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-slate-900"
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-900"
                 />
               </div>
             </div>
@@ -407,7 +407,7 @@ export function AdminElectionDetailPage() {
           </div>
         </form>
       ) : (
-        <div className="rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-slate-900 md:rounded-[2.5rem] md:p-10">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-night-900 md:rounded-3xl md:p-10">
           <h2 className="mb-4 text-lg font-bold tracking-tight text-slate-950 dark:text-white md:mb-6 md:text-xl">À propos de l'élection</h2>
           <div className="prose prose-slate max-w-none dark:prose-invert">
             {election.description ? (
@@ -420,7 +420,7 @@ export function AdminElectionDetailPage() {
       )}
 
       {/* Participation */}
-      <section className="overflow-hidden rounded-[1.5rem] border border-slate-200/90 bg-white p-5 shadow-sm dark:border-white/[0.06] dark:bg-slate-950/35 dark:shadow-none md:rounded-[2rem] md:p-8">
+      <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-white/[0.07] dark:bg-white/[0.02] dark:shadow-none md:rounded-2xl md:p-8">
         <div className="mb-6 flex items-center gap-3">
           <div className="rounded-lg bg-blue-600/10 p-2 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400">
             <Users className="size-5" strokeWidth={1.5} />
@@ -445,7 +445,7 @@ export function AdminElectionDetailPage() {
 
       {/* Résultats agrégés */}
       {resultsAllowed && (
-        <section className="overflow-hidden rounded-[1.5rem] border border-slate-200/90 bg-white p-5 shadow-sm dark:border-white/[0.06] dark:bg-slate-950/35 dark:shadow-none md:rounded-[2rem] md:p-8">
+        <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-white/[0.07] dark:bg-white/[0.02] dark:shadow-none md:rounded-2xl md:p-8">
           <div className="mb-6 flex items-center gap-3">
             <div className="rounded-lg bg-blue-600/10 p-2 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400">
               <PieChart className="size-5" strokeWidth={1.5} />
@@ -468,7 +468,7 @@ export function AdminElectionDetailPage() {
               <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full min-w-[320px] text-left text-xs md:text-sm">
                   <thead>
-                    <tr className="border-b border-slate-200 text-[10px] uppercase tracking-widest text-slate-400 dark:border-white/[0.06]">
+                    <tr className="border-b border-slate-200 text-[10px] uppercase tracking-widest text-slate-400 dark:border-white/[0.07]">
                       <th className="pb-4 font-bold">Liste</th>
                       <th className="pb-4 font-bold">Voix</th>
                       <th className="pb-4 font-bold">%</th>
@@ -491,7 +491,7 @@ export function AdminElectionDetailPage() {
       )}
 
       {/* Listes candidates */}
-      <section className="overflow-hidden rounded-[1.5rem] border border-slate-200/90 bg-white p-5 shadow-sm dark:border-white/[0.06] dark:bg-slate-950/35 dark:shadow-none md:rounded-[2rem] md:p-8">
+      <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-white/[0.07] dark:bg-white/[0.02] dark:shadow-none md:rounded-2xl md:p-8">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-blue-600/10 p-2 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400">
@@ -521,7 +521,7 @@ export function AdminElectionDetailPage() {
             <div className="overflow-x-auto scrollbar-hide">
               <table className="w-full min-w-[580px] text-xs md:text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 text-[10px] uppercase tracking-widest text-slate-400 dark:border-white/[0.06]">
+                  <tr className="border-b border-slate-200 text-[10px] uppercase tracking-widest text-slate-400 dark:border-white/[0.07]">
                     <th className="pb-4 text-left w-10 font-bold">#</th>
                     <th className="pb-4 text-left font-bold">Informations</th>
                     <th className="pb-4 text-left w-20 font-bold">Média</th>
@@ -632,7 +632,7 @@ export function AdminElectionDetailPage() {
                   <button
                     onClick={() => setCandidateListPage((p) => Math.max(1, p - 1))}
                     disabled={candidateListPage === 1}
-                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-[10px] font-bold uppercase tracking-widest text-slate-700 transition hover:bg-slate-50 disabled:opacity-40 dark:border-white/10 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-white/5"
+                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-[10px] font-bold uppercase tracking-widest text-slate-700 transition hover:bg-slate-50 disabled:opacity-40 dark:border-white/10 dark:bg-night-950 dark:text-slate-300 dark:hover:bg-white/5"
                   >
                     <ChevronLeft className="size-3.5" strokeWidth={2.5} />
                     Précédent
@@ -643,7 +643,7 @@ export function AdminElectionDetailPage() {
                   <button
                     onClick={() => setCandidateListPage((p) => Math.min(totalCandidateListPages, p + 1))}
                     disabled={candidateListPage === totalCandidateListPages}
-                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-[10px] font-bold uppercase tracking-widest text-slate-700 transition hover:bg-slate-50 disabled:opacity-40 dark:border-white/10 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-white/5"
+                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-[10px] font-bold uppercase tracking-widest text-slate-700 transition hover:bg-slate-50 disabled:opacity-40 dark:border-white/10 dark:bg-night-950 dark:text-slate-300 dark:hover:bg-white/5"
                   >
                     Suivant
                     <ChevronRight className="size-3.5" strokeWidth={2.5} />

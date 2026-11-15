@@ -98,9 +98,9 @@ export function AdminUsersPage() {
           {usersQuery.data?.map((user) => (
             <div
               key={user.id}
-              className="group relative rounded-[2rem] border border-slate-200 bg-white p-1.5 transition-all hover:border-blue-500/30 hover:shadow-xl hover:shadow-blue-500/5 dark:border-white/[0.08] dark:bg-slate-900"
+              className="group relative rounded-2xl border border-slate-200 bg-white p-1.5 transition-all hover:border-blue-500/30 hover:shadow-xl hover:shadow-blue-500/5 dark:border-white/[0.08] dark:bg-night-900"
             >
-              <div className="flex h-full flex-col rounded-[calc(2rem-0.375rem)] bg-white p-6 dark:bg-slate-950">
+              <div className="flex h-full flex-col rounded-xl bg-white p-6 dark:bg-night-950">
                 <div className="mb-4 flex items-start justify-between">
                   <div className={`rounded-full p-2.5 ${user.role === 'SUPER_ADMIN' ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/10' : 'bg-blue-50 text-blue-600 dark:bg-blue-500/10'}`}>
                     {user.role === 'SUPER_ADMIN' ? <ShieldCheck className="size-6" strokeWidth={1.5} /> : <Shield className="size-6" strokeWidth={1.5} />}

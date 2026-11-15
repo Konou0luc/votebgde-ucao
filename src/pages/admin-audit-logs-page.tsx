@@ -127,7 +127,7 @@ export function AdminAuditLogsPage() {
               placeholder="Rechercher une action, un email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-medium outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-slate-950 sm:w-64"
+              className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950 sm:w-64"
             />
           </div>
           <div className="relative">
@@ -135,7 +135,7 @@ export function AdminAuditLogsPage() {
             <select
               value={severityFilter}
               onChange={(e) => setSeverityFilter(e.target.value)}
-              className="h-12 w-full appearance-none rounded-2xl border border-slate-200 bg-white pl-11 pr-10 text-sm font-medium outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-slate-950 sm:w-48"
+              className="h-12 w-full appearance-none rounded-2xl border border-slate-200 bg-white pl-11 pr-10 text-sm font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950 sm:w-48"
             >
               <option value="ALL">Toutes sévérités</option>
               <option value="INFO">Info</option>
@@ -151,7 +151,7 @@ export function AdminAuditLogsPage() {
           <Loader2 className="size-8 animate-spin text-blue-600" />
         </div>
       ) : (
-        <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white dark:border-white/[0.08] dark:bg-slate-900">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-white/[0.08] dark:bg-night-900">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
@@ -231,7 +231,7 @@ export function AdminAuditLogsPage() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={safePage === 1}
-                  className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-40 dark:border-white/10 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-white/5"
+                  className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-40 dark:border-white/10 dark:bg-night-950 dark:text-slate-300 dark:hover:bg-white/5"
                 >
                   <ChevronLeft className="size-4" strokeWidth={2} />
                   Précédent
@@ -242,7 +242,7 @@ export function AdminAuditLogsPage() {
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={safePage === totalPages}
-                  className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-40 dark:border-white/10 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-white/5"
+                  className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-40 dark:border-white/10 dark:bg-night-950 dark:text-slate-300 dark:hover:bg-white/5"
                 >
                   Suivant
                   <ChevronRight className="size-4" strokeWidth={2} />

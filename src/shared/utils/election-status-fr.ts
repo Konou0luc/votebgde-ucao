@@ -9,3 +9,15 @@ export function electionStatusLabelFr(status: string): string {
   }
   return map[status.toUpperCase()] ?? status
 }
+
+/** Libellés simples pour les étudiants (pages publiques). */
+export function voteStatusLabelPublic(status: string): string {
+  const map: Record<string, string> = {
+    DRAFT: 'En préparation',
+    SCHEDULED: 'Bientôt ouvert',
+    OPEN: 'En cours',
+    CLOSED: 'Terminé',
+    ARCHIVED: 'Terminé',
+  }
+  return map[status.toUpperCase()] ?? status
+}

@@ -22,8 +22,8 @@ import { ADMIN_PRIVATE_PATH } from '../shared/constants/routes'
 import type { AdminRole } from '../modules/admin-dashboard/types'
 
 const ALL_PERMISSIONS = [
-  { id: 'scrutin:read', label: 'Voir Scrutins' },
-  { id: 'scrutin:write', label: 'Gérer Scrutins' },
+  { id: 'scrutin:read', label: 'Voir les votes' },
+  { id: 'scrutin:write', label: 'Gérer les votes' },
   { id: 'candidate-list:read', label: 'Voir Listes' },
   { id: 'candidate-list:write', label: 'Gérer Listes' },
   { id: 'results:publish', label: 'Publier Résultats' },
@@ -146,7 +146,7 @@ export function AdminUserEditPage() {
       </header>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="rounded-[2.5rem] border border-slate-200 bg-white p-8 dark:border-white/[0.08] dark:bg-slate-900">
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 dark:border-white/[0.08] dark:bg-night-900">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             <div className="space-y-2.5">
               <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Email</label>
@@ -157,7 +157,7 @@ export function AdminUserEditPage() {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-medium outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-slate-950"
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950"
                   placeholder="admin@example.com"
                 />
               </div>
@@ -171,7 +171,7 @@ export function AdminUserEditPage() {
                 required={!isEditMode}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-slate-950"
+                className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950"
                 placeholder="••••••••"
               />
             </div>
@@ -188,10 +188,10 @@ export function AdminUserEditPage() {
                   className={`flex items-center gap-4 rounded-2xl border p-5 transition text-left ${
                     formData.role === role
                       ? 'border-blue-500 bg-blue-50/50 text-blue-600 dark:bg-blue-500/10'
-                      : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200 dark:border-white/5 dark:bg-slate-800/50'
+                      : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200 dark:border-white/5 dark:bg-white/[0.04]'
                   }`}
                 >
-                  <div className={`rounded-xl p-2 ${formData.role === role ? 'bg-blue-600 text-white' : 'bg-white dark:bg-slate-950'}`}>
+                  <div className={`rounded-xl p-2 ${formData.role === role ? 'bg-blue-600 text-white' : 'bg-white dark:bg-night-950'}`}>
                     {role === 'SUPER_ADMIN' ? <ShieldCheck className="size-5" /> : <Shield className="size-5" />}
                   </div>
                   <div>
@@ -224,7 +224,7 @@ export function AdminUserEditPage() {
                   className={`flex items-center justify-between rounded-2xl border px-5 py-4 transition ${
                     formData.permissions.includes(perm.id) || formData.role === 'SUPER_ADMIN'
                       ? 'border-emerald-500/30 bg-emerald-50/50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
-                      : 'border-slate-100 bg-slate-50 text-slate-500 dark:border-white/5 dark:bg-slate-800/50 hover:border-slate-200'
+                      : 'border-slate-100 bg-slate-50 text-slate-500 dark:border-white/5 dark:bg-white/[0.04] hover:border-slate-200'
                   } ${formData.role === 'SUPER_ADMIN' ? 'opacity-60 cursor-not-allowed' : ''}`}
                 >
                   <span className="text-xs font-bold">{perm.label}</span>
@@ -247,7 +247,7 @@ export function AdminUserEditPage() {
                 id="isActive"
                 checked={formData.isActive}
                 onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                className="peer size-5 cursor-pointer appearance-none rounded-lg border-2 border-slate-200 bg-white transition-all checked:border-blue-500 checked:bg-blue-500 dark:border-white/10 dark:bg-slate-950"
+                className="peer size-5 cursor-pointer appearance-none rounded-lg border-2 border-slate-200 bg-white transition-all checked:border-blue-500 checked:bg-blue-500 dark:border-white/10 dark:bg-night-950"
               />
               <Check className="pointer-events-none absolute left-1 top-1/2 size-3 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100" strokeWidth={4} />
             </div>

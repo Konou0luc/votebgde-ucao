@@ -130,7 +130,7 @@ export function AdminCandidateListCreatePage() {
 
   if (scrutinsQuery.isError || !election) {
     return (
-      <div className="rounded-[2rem] border border-rose-200 bg-rose-50 px-6 py-8 text-sm text-rose-900 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-100">
+      <div className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-8 text-sm text-rose-900 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-100">
         <p>Élection introuvable.</p>
         <Link to={`${ADMIN_PRIVATE_PATH}/scrutins`} className="mt-4 inline-block font-medium text-blue-600 dark:text-blue-400">
           Retour aux élections
@@ -165,7 +165,7 @@ export function AdminCandidateListCreatePage() {
 
       <form
         onSubmit={onSaveList}
-        className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-slate-900 md:p-10"
+        className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-night-900 md:p-10"
       >
         <div className="space-y-8">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -176,7 +176,7 @@ export function AdminCandidateListCreatePage() {
                 value={newListName}
                 onChange={(ev) => setNewListName(ev.target.value)}
                 placeholder="Ex: Excellence UCAO"
-                className="h-11 md:h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm md:text-base font-medium outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-slate-950"
+                className="h-11 md:h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm md:text-base font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950"
               />
             </div>
             <div className="space-y-2.5">
@@ -185,7 +185,7 @@ export function AdminCandidateListCreatePage() {
                 value={newListSlogan}
                 onChange={(ev) => setNewListSlogan(ev.target.value)}
                 placeholder="Ex: Bâtir ensemble"
-                className="h-11 md:h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm md:text-base font-medium outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-slate-950"
+                className="h-11 md:h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm md:text-base font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950"
               />
             </div>
             <div className="space-y-2.5">
@@ -195,7 +195,7 @@ export function AdminCandidateListCreatePage() {
                 min={1}
                 value={newListOrder}
                 onChange={(ev) => setNewListOrder(Number(ev.target.value) || 1)}
-                className="h-11 md:h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm md:text-base font-medium outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-slate-950"
+                className="h-11 md:h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm md:text-base font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950"
               />
             </div>
           </div>
@@ -207,7 +207,7 @@ export function AdminCandidateListCreatePage() {
               value={newListDescription}
               onChange={(ev) => setNewListDescription(ev.target.value)}
               placeholder="Détaillez les ambitions de cette liste..."
-              className="w-full rounded-xl border border-slate-200 bg-white p-4 text-sm md:text-base font-medium outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-slate-950"
+              className="w-full rounded-xl border border-slate-200 bg-white p-4 text-sm md:text-base font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950"
             />
           </div>
 
@@ -239,13 +239,13 @@ export function AdminCandidateListCreatePage() {
                   placeholder="Nom du membre"
                   value={memberName}
                   onChange={(e) => setMemberName(e.target.value)}
-                  className="h-11 md:h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm md:text-base font-medium outline-none focus:border-blue-500 dark:border-white/10 dark:bg-slate-950"
+                  className="h-11 md:h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm md:text-base font-medium outline-none focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950"
                 />
                 <div className="flex gap-2">
                   <select
                     value={memberRole}
                     onChange={(e) => setMemberRole(e.target.value)}
-                    className="h-11 md:h-12 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm md:text-base font-medium outline-none focus:border-blue-500 dark:border-white/10 dark:bg-slate-950"
+                    className="h-11 md:h-12 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm md:text-base font-medium outline-none focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950"
                   >
                     {adminRoles.map((role) => (
                       <option key={role} value={role}>
@@ -305,7 +305,7 @@ export function AdminCandidateListCreatePage() {
                       }
                     }
                   }}
-                  className="h-11 md:h-12 flex-1 rounded-xl border border-slate-200 bg-white px-4 text-sm md:text-base font-medium outline-none focus:border-blue-500 dark:border-white/10 dark:bg-slate-950"
+                  className="h-11 md:h-12 flex-1 rounded-xl border border-slate-200 bg-white px-4 text-sm md:text-base font-medium outline-none focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950"
                 />
                 <button
                   type="button"

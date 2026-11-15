@@ -66,7 +66,7 @@ export function AdminElectionCreatePage() {
 
   if (!canWrite) {
     return (
-      <div className="rounded-[2rem] border border-amber-200 bg-amber-50 px-6 py-8 text-sm text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-8 text-sm text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
         <p>Vous n&apos;avez pas la permission de créer une élection.</p>
         <Link to={`${ADMIN_PRIVATE_PATH}/scrutins`} className="mt-4 inline-block font-medium text-blue-600 underline dark:text-blue-400">
           Retour à la liste
@@ -77,7 +77,7 @@ export function AdminElectionCreatePage() {
 
   return (
     <div className="space-y-8 pb-12">
-      <header className="border-b border-slate-200/90 pb-8 dark:border-white/[0.06]">
+      <header className="border-b border-slate-200/80 pb-8 dark:border-white/[0.07]">
         <Link
           to={`${ADMIN_PRIVATE_PATH}/scrutins`}
           className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
@@ -94,7 +94,7 @@ export function AdminElectionCreatePage() {
 
       <form
         onSubmit={onSubmit}
-        className="mx-auto max-w-xl space-y-5 rounded-[2rem] border border-slate-200/90 bg-white p-4 shadow-sm dark:border-white/[0.06] dark:bg-slate-950/40 dark:shadow-none md:p-8"
+        className="mx-auto max-w-xl space-y-5 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-white/[0.07] dark:bg-white/[0.02] dark:shadow-none md:p-8"
       >
         <div>
           <label htmlFor="ce-title" className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-400">
@@ -104,7 +104,7 @@ export function AdminElectionCreatePage() {
             id="ce-title"
             value={title}
             onChange={(ev) => setTitle(ev.target.value)}
-            className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
+            className="tt-field-outline min-h-11 w-full rounded-xl px-3 py-2"
             maxLength={180}
             required
           />
@@ -118,7 +118,7 @@ export function AdminElectionCreatePage() {
             value={description}
             onChange={(ev) => setDescription(ev.target.value)}
             rows={3}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
+            className="tt-field-outline w-full rounded-xl px-3 py-2"
             maxLength={1500}
           />
         </div>
@@ -132,7 +132,7 @@ export function AdminElectionCreatePage() {
               id="ce-status"
               value={status}
               onChange={(ev) => setStatus(ev.target.value as ScrutinStatus)}
-              className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
+              className="tt-field-outline min-h-11 w-full rounded-xl px-3 py-2"
             >
               {statuses.map((s) => (
                 <option key={s.value} value={s.value}>
@@ -155,7 +155,7 @@ export function AdminElectionCreatePage() {
               type="datetime-local"
               value={startsAt}
               onChange={(ev) => setStartsAt(ev.target.value)}
-              className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
+              className="tt-field-outline min-h-11 w-full rounded-xl px-3 py-2"
               required
             />
           </div>
@@ -168,7 +168,7 @@ export function AdminElectionCreatePage() {
               type="datetime-local"
               value={endsAt}
               onChange={(ev) => setEndsAt(ev.target.value)}
-              className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100"
+              className="tt-field-outline min-h-11 w-full rounded-xl px-3 py-2"
               required
             />
           </div>

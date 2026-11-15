@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { CandidateListStepPage, ConfirmationStepPage, MatriculeStepPage, OtpStepPage } from '../modules/student-vote/student-vote-steps'
 import { LandingPage } from '../pages/landing-page'
@@ -6,8 +7,10 @@ import { StudentVotePage } from '../pages/student-vote-page'
 import { VoteResultsPage } from '../pages/vote-results-page'
 import { NotFoundPage } from '../pages/not-found-page'
 import { ADMIN_PRIVATE_PATH } from '../shared/constants/routes'
-import { AdminRoutes } from './admin-routes'
+import { LoadingBlock } from '../shared/ui/backdrop'
 import { SiteLayout } from '../shared/ui/site-layout'
+
+const AdminRoutes = lazy(() => import('./admin-routes').then((m) => ({ default: m.AdminRoutes })))
 
 export function AppRouter() {
   return (
@@ -51,7 +54,14 @@ export function AppRouter() {
           <Route path="confirmation" element={<ConfirmationStepPage />} />
           <Route path="succes" element={<Navigate replace to="/resultats" />} />
         </Route>
-        <Route path={`${ADMIN_PRIVATE_PATH}/*`} element={<AdminRoutes />} />
+        <Route
+          path={`${ADMIN_PRIVATE_PATH}/*`}
+          element={
+            <Suspense fallback={<LoadingBlock label="Chargement de la console…" />}>
+              <AdminRoutes />
+            </Suspense>
+          }
+        />
         <Route
           path="*"
           element={

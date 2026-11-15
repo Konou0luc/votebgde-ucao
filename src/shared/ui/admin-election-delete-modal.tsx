@@ -98,12 +98,12 @@ export function AdminElectionDeleteModal({ election, isDeleting, onClose, onConf
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descId}
-        className="relative z-[1] w-full max-w-[440px] overflow-hidden rounded-[2.5rem] border border-white/20 bg-white/90 p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/90 dark:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)]"
+        className="relative z-[1] w-full max-w-[440px] overflow-hidden rounded-3xl border border-white/20 bg-white/90 p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] backdrop-blur-xl dark:border-white/10 dark:bg-night-900/90 dark:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)]"
       >
         <div className="flex flex-col items-center text-center">
           {/* Icone avec aura lumineuse */}
-          <div className="relative mb-6 flex size-16 items-center justify-center rounded-[1.5rem] bg-rose-500/10 text-rose-600 dark:text-rose-400">
-            <div className="absolute inset-0 animate-pulse rounded-[1.5rem] bg-rose-500 blur-xl opacity-20" />
+          <div className="relative mb-6 flex size-16 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+            <div className="absolute inset-0 animate-pulse rounded-2xl bg-rose-500 blur-xl opacity-20" />
             <AlertTriangle className="relative size-8" strokeWidth={1.5} />
           </div>
 
@@ -139,7 +139,7 @@ export function AdminElectionDeleteModal({ election, isDeleting, onClose, onConf
               onChange={(e) => setConfirmInput(e.target.value)}
               placeholder={election.title}
               disabled={isDeleting}
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-white/50 px-4 text-sm font-medium outline-none transition focus:border-rose-500 focus:bg-white dark:border-white/10 dark:bg-slate-950/50"
+              className="h-12 w-full rounded-2xl border border-slate-200 bg-white/50 px-4 text-sm font-medium outline-none transition focus:border-rose-500 focus:bg-white dark:border-white/10 dark:bg-white/[0.02]"
             />
             {!titleMatches && confirmInput.length > 0 && (
               <p className="px-1 text-[10px] font-bold text-rose-500">Le titre ne correspond pas.</p>

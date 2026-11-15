@@ -1,21 +1,75 @@
+import type { ReactNode } from 'react'
 import { isAxiosError } from 'axios'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { 
-  ChartBar, 
-  CheckCircle, 
-  House, 
-  TrendUp, 
+import {
+  ChartBar,
+  CheckCircle,
+  House,
   Trophy,
   Users,
   Calendar,
   ShieldCheck,
   Lock,
-  ArrowRight
+  ArrowRight,
+  ListChecks,
 } from '@phosphor-icons/react'
 import { useActiveScrutinQuery, usePublishedScrutinResultsQuery } from '../modules/student-vote/hooks'
 import { CardShell } from '../shared/ui/CardShell'
-import { Button } from '../shared/ui/Button'
+import { ButtonLink } from '../shared/ui/Button'
+import { Backdrop } from '../shared/ui/backdrop'
+import { Reveal, RevealGroup, RevealItem } from '../shared/ui/motion'
+import { EASE_OUT } from '../shared/ui/motion-presets'
+
+function EmptyState({
+  icon,
+  title,
+  children,
+  action,
+}: {
+  icon: ReactNode
+  title: string
+  children: ReactNode
+  action?: ReactNode
+}) {
+  return (
+    <Reveal immediate delay={0.1}>
+      <CardShell className="edge-highlight flex flex-col items-center !rounded-3xl !p-8 text-center sm:!p-12">
+        <div className="relative flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 ring-1 ring-inset ring-slate-200 dark:bg-white/[0.04] dark:text-slate-400 dark:ring-white/10">
+          {icon}
+        </div>
+        <h2 className="mt-6 text-xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-2xl">{title}</h2>
+        <p className="mt-3 max-w-sm text-sm leading-relaxed text-slate-500 dark:text-slate-400">{children}</p>
+        <div className="mt-8 flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row">
+          {action}
+          <ButtonLink to="/" variant="ghost" leading={<House size={16} />}>
+            Retour à l'accueil
+          </ButtonLink>
+        </div>
+      </CardShell>
+    </Reveal>
+  )
+}
+
+function SuccessBanner() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: EASE_OUT }}
+      role="status"
+      className="mb-8 flex items-center gap-4 rounded-2xl border border-aqua-500/25 bg-aqua-500/[0.07] p-4 text-left text-aqua-800 dark:text-aqua-200"
+    >
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-aqua-500/15">
+        <CheckCircle size={22} weight="duotone" />
+      </span>
+      <div>
+        <h3 className="text-sm font-semibold">Vote enregistré avec succès</h3>
+        <p className="text-sm opacity-80">Votre vote a bien été pris en compte. Merci pour votre participation !</p>
+      </div>
+    </motion.div>
+  )
+}
 
 export function VoteResultsPage() {
   const location = useLocation()
@@ -25,231 +79,225 @@ export function VoteResultsPage() {
   const scrutinId = activeScrutinQuery.data?.id
   const resultsQuery = usePublishedScrutinResultsQuery(scrutinId)
 
-  const is403 =
-    isAxiosError(resultsQuery.error) && resultsQuery.error.response?.status === 403
+  const is403 = isAxiosError(resultsQuery.error) && resultsQuery.error.response?.status === 403
 
   const sortedResults = resultsQuery.data?.results
     ? [...resultsQuery.data.results].sort((a, b) => b.votes - a.votes)
     : []
 
-  const fadeIn = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.8, ease: [0.32, 0.72, 0, 1] as const }
+  const publishedAt = resultsQuery.data?.resultsPublishedAt ? new Date(resultsQuery.data.resultsPublishedAt) : null
+  const resultsLoading = Boolean(scrutinId) && resultsQuery.isLoading
+  const isLoading = activeScrutinQuery.isLoading || resultsLoading
+  const hasResults = Boolean(resultsQuery.data) && sortedResults.length > 0
+  const voteTitle = activeScrutinQuery.data?.title
+
+  /* ─── Pas de résultats : composition centrée unique ─── */
+  if (!isLoading && !hasResults) {
+    let empty: ReactNode
+    if (!activeScrutinQuery.data) {
+      empty = (
+        <EmptyState icon={<Calendar size={26} />} title="Aucun vote en cours">
+          Il n’y a actuellement aucun vote ouvert. Les résultats apparaîtront ici à la fin du prochain vote.
+        </EmptyState>
+      )
+    } else if (is403) {
+      empty = (
+        <EmptyState
+          icon={<Lock size={26} />}
+          title="Résultats pas encore disponibles"
+          action={
+            <ButtonLink to="/vote" trailing={<ArrowRight size={16} weight="bold" />}>
+              Voter maintenant
+            </ButtonLink>
+          }
+        >
+          Les résultats de <span className="font-medium text-slate-900 dark:text-white">« {voteTitle} »</span> seront
+          affichés à la fin du vote.
+        </EmptyState>
+      )
+    } else {
+      empty = (
+        <EmptyState icon={<ChartBar size={26} />} title="Aucun résultat disponible">
+          Les résultats de ce vote ne sont pas encore disponibles. Réessayez plus tard.
+        </EmptyState>
+      )
+    }
+
+    return (
+      <div className="relative isolate">
+        <Backdrop pattern="grid" />
+        <div className="relative mx-auto flex min-h-[calc(100dvh-7rem)] w-full max-w-xl flex-col justify-center px-4 py-12 text-center sm:px-6">
+          {fromVote && <SuccessBanner />}
+          <Reveal immediate className="mb-8">
+            <p className="tt-overline">Résultats</p>
+            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.035em] text-slate-950 dark:text-white sm:text-5xl">
+              Résultats <span className="text-gradient">du vote.</span>
+            </h1>
+          </Reveal>
+          {empty}
+        </div>
+      </div>
+    )
   }
 
+  /* ─── Chargement ou résultats : mise en page alignée sur une grille ─── */
   return (
-    <main className="min-h-screen">
-      <div className="section-container py-24">
-        {fromVote && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="mb-12"
-          >
-            <div className="flex items-center gap-4 border border-brand-100 bg-brand-50 p-6 text-brand-800 rounded-3xl dark:border-brand-900/30 dark:bg-brand-900/10 dark:text-brand-400">
-              <CheckCircle size={32} weight="duotone" className="shrink-0" />
-              <div>
-                <h3 className="text-sm font-bold">Vote enregistré avec succès</h3>
-                <p className="text-xs opacity-90">Votre bulletin a été déposé et chiffré dans l'urne numérique certifiée.</p>
-              </div>
-            </div>
-          </motion.div>
-        )}
+    <div className="relative isolate">
+      <Backdrop pattern="grid" />
+      <div className="section-container relative py-10 md:py-16">
+        {fromVote && <SuccessBanner />}
 
-        <motion.div {...fadeIn} className="mb-20">
-          <h1 className="font-display text-4xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-6xl">
-            {activeScrutinQuery.data?.title || 'Tableau de bord'} <br />
-            <span className="italic text-brand-600">électoral.</span>
-          </h1>
-          <p className="mt-8 max-w-2xl text-lg text-slate-500 dark:text-slate-400 leading-relaxed">
-            Consultez les statistiques de participation et la répartition des votes certifiés par le protocole VoteBGDE.
-          </p>
-        </motion.div>
-
-        {activeScrutinQuery.isLoading && (
-          <div className="grid gap-6 md:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-40 animate-pulse rounded-[2rem] bg-slate-100 dark:bg-white/5" />
-            ))}
+        <Reveal immediate className="mb-10 flex flex-col gap-4 md:mb-12 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-3xl">
+            <p className="tt-overline">Résultats</p>
+            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.035em] text-slate-950 dark:text-white sm:text-5xl lg:text-6xl">
+              {voteTitle || 'Résultats'} <span className="text-gradient">du vote.</span>
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-400 md:text-lg">
+              Consultez la participation et la répartition des votes.
+            </p>
           </div>
-        )}
+        </Reveal>
 
-        {!activeScrutinQuery.isLoading && !activeScrutinQuery.data && (
-          <motion.div {...fadeIn}>
-            <CardShell className="flex flex-col items-center justify-center p-16 text-center max-w-2xl mx-auto">
-              <div className="flex size-20 items-center justify-center rounded-3xl bg-slate-50 text-slate-400 dark:bg-white/5 mb-8">
-                <Calendar size={40} weight="light" />
-              </div>
-              <h2 className="font-display text-3xl font-semibold text-slate-900 dark:text-white">Aucune élection active</h2>
-              <p className="mt-6 text-slate-500 dark:text-slate-400 leading-relaxed">
-                Il n'y a actuellement aucun élection en cours. Veuillez revenir ultérieurement.
-              </p>
-              <Link to="/" className="mt-10">
-                <Button variant="ghost" trailing={<House size={18} />}>
-                  Retour à l'accueil
-                </Button>
-              </Link>
-            </CardShell>
-          </motion.div>
-        )}
-
-        {activeScrutinQuery.data && is403 && (
-          <motion.div {...fadeIn}>
-            <CardShell className="flex flex-col items-center justify-center p-16 text-center max-w-2xl mx-auto">
-              <div className="flex size-20 items-center justify-center rounded-3xl bg-slate-50 text-slate-400 dark:bg-white/5 mb-8">
-                <Lock size={40} weight="light" />
-              </div>
-              <h2 className="font-display text-3xl font-semibold text-slate-900 dark:text-white">Publication en attente</h2>
-              <p className="mt-6 text-slate-500 dark:text-slate-400 leading-relaxed">
-                Les résultats officiels pour <span className="text-slate-900 dark:text-white font-bold">"{activeScrutinQuery.data.title}"</span> n'ont pas encore été rendus publics par la commission électorale.
-              </p>
-              <Link to="/" className="mt-10">
-                <Button variant="ghost" trailing={<House size={18} />}>
-                  Retour à l'accueil
-                </Button>
-              </Link>
-            </CardShell>
-          </motion.div>
-        )}
-
-        {activeScrutinQuery.data && !resultsQuery.isLoading && !resultsQuery.data && !is403 && (
-          <motion.div {...fadeIn}>
-            <CardShell className="flex flex-col items-center justify-center p-16 text-center max-w-2xl mx-auto">
-              <div className="flex size-20 items-center justify-center rounded-3xl bg-slate-50 text-slate-400 dark:bg-white/5 mb-8">
-                <ChartBar size={40} weight="light" />
-              </div>
-              <h2 className="font-display text-3xl font-semibold text-slate-900 dark:text-white">Aucun résultat disponible</h2>
-              <p className="mt-6 text-slate-500 dark:text-slate-400 leading-relaxed">
-                Les résultats pour cette élection ne sont pas encore disponibles. Veuillez réessayer ultérieurement.
-              </p>
-              <Link to="/" className="mt-10">
-                <Button variant="ghost" trailing={<House size={18} />}>
-                  Retour à l'accueil
-                </Button>
-              </Link>
-            </CardShell>
-          </motion.div>
+        {isLoading && (
+          <div className="space-y-4" aria-busy="true" aria-label="Chargement des résultats">
+            <div className="grid gap-4 md:grid-cols-3">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="skeleton h-28" />
+              ))}
+            </div>
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="skeleton h-72 lg:col-span-2" />
+              <div className="skeleton h-72" />
+            </div>
+          </div>
         )}
 
         {resultsQuery.data ? (
           sortedResults.length > 0 ? (
-            <div className="space-y-12">
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.8 }}
-                className="grid gap-6 sm:grid-cols-3"
-              >
+            <div className="space-y-6">
+              <RevealGroup immediate className="grid gap-4 sm:grid-cols-3">
                 {[
-                  { label: 'Votes Totaux', value: resultsQuery.data.totalVotes, icon: <Users size={20} weight="light" /> },
-                  { label: 'Participation', value: '74.2%', icon: <TrendUp size={20} weight="light" /> },
-                  { label: 'Dernière MAJ', value: new Date(resultsQuery.data.resultsPublishedAt).toLocaleTimeString('fr-FR'), icon: <Calendar size={20} weight="light" /> },
-                ].map((stat, i) => (
-                  <CardShell key={i}>
-                    <div className="flex items-center gap-3 tt-overline">
-                      {stat.icon}
-                      <span>{stat.label}</span>
-                    </div>
-                    <p className="mt-6 font-display text-4xl font-semibold tabular-nums text-slate-900 dark:text-white">{stat.value}</p>
-                  </CardShell>
-                ))}
-              </motion.div>
-
-              <div className="grid gap-8 lg:grid-cols-3 items-start">
-                <motion.div 
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4, duration: 0.8 }}
-                  className="lg:col-span-2"
-                >
-                  <CardShell>
-                    <div className="flex items-center justify-between mb-12">
-                      <h3 className="tt-overline">Répartition des voix</h3>
-                      <ChartBar size={24} weight="light" className="text-slate-300" />
-                    </div>
-                    <div className="space-y-10">
-                      {sortedResults.map((row, i) => (
-                        <div key={row.candidateListId} className="group">
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-4">
-                              {i === 0 ? (
-                                <div className="size-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600">
-                                  <Trophy size={18} weight="fill" />
-                                </div>
-                              ) : (
-                                <div className="size-8 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 font-bold text-xs">
-                                  {i + 1}
-                                </div>
-                              )}
-                              <div>
-                                <span className="font-bold text-lg text-slate-900 dark:text-white">{row.name}</span>
-                                <p className="text-xs text-slate-400 font-medium tabular-nums">{row.votes} voix exprimées</p>
-                              </div>
-                            </div>
-                            <span className="font-display text-2xl font-semibold text-brand-600 tabular-nums">{row.percentage.toFixed(1)}%</span>
-                          </div>
-                          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-white/5">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${row.percentage}%` }}
-                              transition={{ duration: 1.5, ease: [0.32, 0.72, 0, 1], delay: 0.6 + i * 0.1 }}
-                              className={`h-full rounded-full ${i === 0 ? 'bg-brand-600 shadow-lg shadow-brand-500/20' : 'bg-slate-300 dark:bg-slate-600'}`}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardShell>
-                </motion.div>
-
-                <motion.div 
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5, duration: 0.8 }}
-                  className="space-y-6"
-                >
-                  <CardShell className="!bg-brand-600 !p-1">
-                    <div className="bg-brand-600 rounded-[calc(2rem-0.375rem-0.375rem)] p-8 text-white">
-                      <ShieldCheck size={40} weight="duotone" className="text-white/40 mb-8" />
-                      <h4 className="font-display text-2xl font-semibold mb-4">Certification</h4>
-                      <p className="text-sm text-white/80 leading-relaxed mb-8">
-                        Ce vote est certifié par le protocole VoteBGDE. Chaque bulletin est chiffré et stocké de manière immuable.
+                  {
+                    label: 'Nombre de votes',
+                    value: resultsQuery.data.totalVotes.toLocaleString('fr-FR'),
+                    icon: <Users size={16} />,
+                  },
+                  { label: 'Listes candidates', value: String(sortedResults.length), icon: <ListChecks size={16} /> },
+                  {
+                    label: 'Résultats affichés à',
+                    value: publishedAt ? publishedAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '—',
+                    sub: publishedAt?.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }),
+                    icon: <Calendar size={16} />,
+                  },
+                ].map((stat) => (
+                  <RevealItem key={stat.label}>
+                    <CardShell className="!p-5">
+                      <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                        {stat.icon}
+                        <span>{stat.label}</span>
+                      </div>
+                      <p className="mt-4 flex items-baseline gap-2 text-3xl font-semibold tabular-nums tracking-tight text-slate-950 dark:text-white">
+                        {stat.value}
+                        {stat.sub && <span className="text-sm font-normal text-slate-500">{stat.sub}</span>}
                       </p>
-                      <div className="pt-6 border-t border-white/10 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/60">
-                        Données vérifiées & Certifiées
+                    </CardShell>
+                  </RevealItem>
+                ))}
+              </RevealGroup>
+
+              <div className="grid items-start gap-6 lg:grid-cols-3">
+                <Reveal immediate delay={0.15} className="lg:col-span-2">
+                  <CardShell className="!p-6 sm:!p-8">
+                    <div className="mb-8 flex items-center justify-between">
+                      <h2 className="text-base font-semibold tracking-tight text-slate-950 dark:text-white">Répartition des voix</h2>
+                      <ChartBar size={20} className="text-slate-400" />
+                    </div>
+                    <ol className="space-y-7">
+                      {sortedResults.map((row, i) => {
+                        const leader = i === 0
+                        return (
+                          <li key={row.candidateListId}>
+                            <div className="mb-3 flex items-center justify-between gap-4">
+                              <div className="flex min-w-0 items-center gap-3">
+                                {leader ? (
+                                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-600 ring-1 ring-inset ring-amber-500/25 dark:text-amber-400">
+                                    <Trophy size={16} weight="fill" />
+                                  </span>
+                                ) : (
+                                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-100 font-mono text-xs text-slate-500 dark:bg-white/[0.05]">
+                                    {i + 1}
+                                  </span>
+                                )}
+                                <div className="min-w-0">
+                                  <p className="truncate font-medium text-slate-950 dark:text-white">{row.name}</p>
+                                  <p className="text-xs tabular-nums text-slate-500">
+                                    {row.votes.toLocaleString('fr-FR')} votes
+                                  </p>
+                                </div>
+                              </div>
+                              <span
+                                className={`shrink-0 text-xl font-semibold tabular-nums tracking-tight ${
+                                  leader ? 'text-slate-950 dark:text-white' : 'text-slate-500 dark:text-slate-400'
+                                }`}
+                              >
+                                {row.percentage.toFixed(1)}%
+                              </span>
+                            </div>
+                            <div
+                              className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-white/[0.05]"
+                              role="progressbar"
+                              aria-label={row.name}
+                              aria-valuenow={Math.round(row.percentage)}
+                              aria-valuemin={0}
+                              aria-valuemax={100}
+                            >
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${row.percentage}%` }}
+                                transition={{ duration: 1.2, ease: EASE_OUT, delay: 0.3 + i * 0.08 }}
+                                className={`h-full rounded-full ${
+                                  leader
+                                    ? 'bg-gradient-to-r from-brand-500 to-aqua-400 shadow-[0_0_12px_rgba(45,212,191,0.5)]'
+                                    : 'bg-slate-300 dark:bg-white/20'
+                                }`}
+                              />
+                            </div>
+                          </li>
+                        )
+                      })}
+                    </ol>
+                  </CardShell>
+                </Reveal>
+
+                <Reveal immediate delay={0.25} className="space-y-4">
+                  <div className="relative isolate overflow-hidden rounded-2xl border border-white/10 bg-night-950 p-7 text-white shadow-lift">
+                    <div className="dark">
+                      <Backdrop pattern="dots" glow />
+                    </div>
+                    <div className="relative">
+                      <div className="flex size-11 items-center justify-center rounded-xl bg-aqua-400/15 text-aqua-300 ring-1 ring-aqua-300/25">
+                        <ShieldCheck size={22} weight="duotone" />
+                      </div>
+                      <h3 className="mt-6 text-xl font-semibold tracking-tight">Vote sécurisé</h3>
+                      <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                        Chaque vote est compté une seule fois et reste secret : personne ne peut savoir qui a voté pour quelle liste.
+                      </p>
+                      <div className="mt-6 flex items-center gap-2 border-t border-white/10 pt-5 text-xs text-slate-400">
+                        <span className="size-1.5 rounded-full bg-aqua-400" /> Un étudiant, un vote
                       </div>
                     </div>
-                  </CardShell>
-                  
-                  <Link to="/" className="block">
-                    <Button variant="ghost" className="w-full !py-4" trailing={<ArrowRight size={18} />}>
-                      Retour à l'accueil
-                    </Button>
-                  </Link>
-                </motion.div>
+                  </div>
+
+                  <ButtonLink to="/" variant="ghost" size="lg" className="w-full" trailing={<ArrowRight size={16} />}>
+                    Retour à l'accueil
+                  </ButtonLink>
+                </Reveal>
               </div>
             </div>
-          ) : (
-            <motion.div {...fadeIn}>
-              <CardShell className="flex flex-col items-center justify-center p-16 text-center max-w-2xl mx-auto">
-                <div className="flex size-20 items-center justify-center rounded-3xl bg-slate-50 text-slate-400 dark:bg-white/5 mb-8">
-                  <ChartBar size={40} weight="light" />
-                </div>
-                <h2 className="font-display text-3xl font-semibold text-slate-900 dark:text-white">Aucun résultat disponible</h2>
-                <p className="mt-6 text-slate-500 dark:text-slate-400 leading-relaxed">
-                  Les résultats pour cette élection ne sont pas encore disponibles. Veuillez réessayer ultérieurement.
-                </p>
-                <Link to="/" className="mt-10">
-                  <Button variant="ghost" trailing={<House size={18} />}>
-                    Retour à l'accueil
-                  </Button>
-                </Link>
-              </CardShell>
-            </motion.div>
-          )
+          ) : null
         ) : null}
       </div>
-    </main>
+    </div>
   )
 }

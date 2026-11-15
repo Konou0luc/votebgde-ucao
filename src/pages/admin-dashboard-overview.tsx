@@ -36,9 +36,9 @@ function KpiShell({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay, ease }}
-      className="rounded-[1.5rem] border border-slate-200/90 bg-white p-1 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.15)] dark:border-white/[0.06] dark:bg-slate-950/40 dark:shadow-[0_24px_60px_-36px_rgba(0,0,0,0.55)] md:rounded-[2rem] md:p-1.5"
+      className="rounded-2xl border border-slate-200/80 bg-white p-1 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.15)] dark:border-white/[0.07] dark:bg-white/[0.02] dark:shadow-[0_24px_60px_-36px_rgba(0,0,0,0.55)] md:rounded-2xl md:p-1.5"
     >
-      <div className="rounded-[calc(1.5rem-4px)] border border-slate-100 bg-slate-50/80 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] dark:border-white/[0.05] dark:bg-slate-900/60 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] md:rounded-[calc(2rem-6px)] md:px-5 md:py-5">
+      <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] dark:border-white/[0.05] dark:bg-night-900/60 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] md:rounded-xl md:px-5 md:py-5">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500 md:text-[11px]">{label}</p>
@@ -61,7 +61,7 @@ export function AdminDashboardOverview() {
 
   if (dashboardQuery.isLoading) {
     return (
-      <div className="flex min-h-[40dvh] flex-col items-center justify-center gap-3 rounded-[2rem] border border-slate-200/90 bg-white/80 px-6 py-16 dark:border-white/[0.06] dark:bg-slate-950/30">
+      <div className="flex min-h-[40dvh] flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200/80 bg-white/80 px-6 py-16 dark:border-white/[0.07] dark:bg-white/[0.02]">
         <Loader2 className="size-8 animate-spin text-blue-600 dark:text-blue-400" strokeWidth={1.25} />
         <p className="text-sm text-slate-600 dark:text-slate-400">Chargement du tableau de bord...</p>
       </div>
@@ -70,7 +70,7 @@ export function AdminDashboardOverview() {
 
   if (dashboardQuery.isError) {
     return (
-      <div className="rounded-[2rem] border border-rose-200 bg-rose-50 px-6 py-8 text-sm text-rose-900 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-100">
+      <div className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-8 text-sm text-rose-900 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-100">
         Impossible de charger les indicateurs. Vérifiez la session et le serveur API.
       </div>
     )
@@ -124,7 +124,7 @@ export function AdminDashboardOverview() {
 
   return (
     <div className="max-w-full space-y-6 pb-12 md:space-y-10">
-      <header className="border-b border-slate-200/90 pb-6 dark:border-white/[0.06] md:pb-8">
+      <header className="border-b border-slate-200/80 pb-6 dark:border-white/[0.07] md:pb-8">
         <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500 md:text-[11px]">Pilotage</p>
         <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 dark:text-white md:text-4xl">Vue d&apos;ensemble</h1>
         <p className="mt-3 max-w-[62ch] text-xs leading-relaxed text-slate-600 dark:text-slate-400 md:text-sm">
@@ -155,8 +155,8 @@ export function AdminDashboardOverview() {
         <KpiShell label="Élections (tous statuts)" value={totalScrutins} icon={Layers} delay={0.12} />
       </div>
 
-      <section className="rounded-[1.5rem] border border-slate-200/90 bg-white p-1 shadow-sm dark:border-white/[0.06] dark:bg-slate-950/35 dark:shadow-none md:rounded-[2rem] md:p-1.5">
-        <div className="rounded-[calc(1.5rem-4px)] border border-slate-100 bg-slate-50/50 p-4 dark:border-white/[0.05] dark:bg-slate-900/50 md:p-8">
+      <section className="rounded-2xl border border-slate-200/80 bg-white p-1 shadow-sm dark:border-white/[0.07] dark:bg-white/[0.02] dark:shadow-none md:rounded-2xl md:p-1.5">
+        <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 dark:border-white/[0.05] dark:bg-night-900/60 md:p-8">
           <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500 md:text-[11px]">Répartition</p>
@@ -185,7 +185,7 @@ export function AdminDashboardOverview() {
                     <span className="text-xs font-medium text-slate-800 dark:text-slate-200 md:text-sm">{row.label}</span>
                   </div>
                   <div className="flex flex-1 items-center gap-3">
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800 md:h-2.5">
+                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-night-800 md:h-2.5">
                       <motion.div
                         className="h-full rounded-full bg-blue-600/90 dark:bg-blue-500/85"
                         initial={{ width: 0 }}

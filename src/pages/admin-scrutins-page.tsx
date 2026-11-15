@@ -100,7 +100,7 @@ export function AdminScrutinsPage() {
         onConfirmDelete={handleConfirmDeleteElection}
       />
 
-      <header className="flex flex-col gap-4 border-b border-slate-200/90 pb-6 dark:border-white/[0.06] md:flex-row md:items-end md:justify-between md:gap-6 md:pb-8">
+      <header className="flex flex-col gap-4 border-b border-slate-200/80 pb-6 dark:border-white/[0.07] md:flex-row md:items-end md:justify-between md:gap-6 md:pb-8">
         <div>
           <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500 md:text-[11px]">Gestion</p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white md:text-4xl">Élections</h1>
@@ -119,8 +119,8 @@ export function AdminScrutinsPage() {
         ) : null}
       </header>
 
-      <div className="rounded-[1.5rem] border border-slate-200/90 bg-white p-1 shadow-sm dark:border-white/[0.06] dark:bg-slate-950/35 dark:shadow-none md:rounded-[2rem] md:p-1.5">
-        <div className="overflow-hidden rounded-[calc(1.5rem-4px)] border border-slate-100 bg-slate-50/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] dark:border-white/[0.05] dark:bg-slate-900/45 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] md:rounded-[calc(2rem-6px)]">
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-1 shadow-sm dark:border-white/[0.07] dark:bg-white/[0.02] dark:shadow-none md:rounded-2xl md:p-1.5">
+        <div className="overflow-hidden rounded-xl border border-slate-100 bg-slate-50/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] dark:border-white/[0.05] dark:bg-night-900/60 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] md:rounded-xl">
           {scrutinsQuery.isLoading ? (
             <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 md:py-20">
               <Loader2 className="size-6 animate-spin text-blue-600 dark:text-blue-400 md:size-8" strokeWidth={1.25} />
@@ -147,7 +147,7 @@ export function AdminScrutinsPage() {
             </div>
           ) : (
             <>
-              <div className="border-b border-slate-200 px-4 py-3 dark:border-white/[0.06] md:px-6 md:py-4">
+              <div className="border-b border-slate-200 px-4 py-3 dark:border-white/[0.07] md:px-6 md:py-4">
                 <label htmlFor="election-search" className="sr-only">
                   Rechercher
                 </label>
@@ -163,7 +163,7 @@ export function AdminScrutinsPage() {
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Rechercher…"
                     autoComplete="off"
-                    className="min-h-10 w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-4 text-xs text-slate-900 outline-none ring-blue-500/0 transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 md:min-h-11 md:pl-10 md:text-sm"
+                    className="min-h-10 w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-4 text-xs text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/[0.1] dark:bg-night-900 dark:text-slate-100 dark:placeholder:text-slate-500 md:min-h-11 md:pl-10 md:text-sm"
                   />
                 </div>
               </div>
@@ -171,7 +171,7 @@ export function AdminScrutinsPage() {
               <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full min-w-[700px] border-collapse text-left text-xs md:min-w-[880px] md:text-sm">
                   <thead>
-                    <tr className="border-b border-slate-200 text-[11px] uppercase tracking-[0.15em] text-slate-500 dark:border-white/[0.06]">
+                    <tr className="border-b border-slate-200 text-[11px] uppercase tracking-[0.15em] text-slate-500 dark:border-white/[0.07]">
                       <th className="px-6 py-4 font-medium">Titre</th>
                       <th className="px-6 py-4 font-medium">Statut</th>
                       <th className="px-6 py-4 font-medium">Début</th>
@@ -225,7 +225,7 @@ export function AdminScrutinsPage() {
                               <div className="flex flex-wrap items-center justify-end gap-1.5">
                                 <Link
                                   to={`${ADMIN_PRIVATE_PATH}/scrutins/${row.id}`}
-                                  className="inline-flex size-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-200 dark:hover:border-blue-500/40 dark:hover:bg-blue-500/15 dark:hover:text-blue-200"
+                                  className="inline-flex size-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-white/[0.1] dark:bg-night-900 dark:text-slate-200 dark:hover:border-blue-500/40 dark:hover:bg-blue-500/15 dark:hover:text-blue-200"
                                   title="Modifier l’élection"
                                   aria-label={`Modifier ${row.title}`}
                                 >
@@ -234,7 +234,7 @@ export function AdminScrutinsPage() {
                                 <button
                                   type="button"
                                   onClick={() => setDeleteTarget(row)}
-                                  className="inline-flex size-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-300 dark:hover:border-rose-500/40 dark:hover:bg-rose-500/15 dark:hover:text-rose-200"
+                                  className="inline-flex size-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 dark:border-white/[0.1] dark:bg-night-900 dark:text-slate-300 dark:hover:border-rose-500/40 dark:hover:bg-rose-500/15 dark:hover:text-rose-200"
                                   title="Supprimer l’élection"
                                   aria-label={`Supprimer ${row.title}`}
                                 >
@@ -253,7 +253,7 @@ export function AdminScrutinsPage() {
               </div>
 
               {hasRemoteData ? (
-                <div className="flex flex-col gap-4 border-t border-slate-200 px-4 py-4 dark:border-white/[0.06] md:flex-row md:items-center md:justify-between md:px-6">
+                <div className="flex flex-col gap-4 border-t border-slate-200 px-4 py-4 dark:border-white/[0.07] md:flex-row md:items-center md:justify-between md:px-6">
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     {filteredRows.length === 0 ? (
                       <>
@@ -277,7 +277,7 @@ export function AdminScrutinsPage() {
                       type="button"
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                       disabled={safePage <= 1 || filteredRows.length === 0}
-                      className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-40 dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-white/[0.06]"
+                      className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-40 dark:border-white/[0.1] dark:bg-night-900 dark:text-slate-200 dark:hover:bg-white/[0.06]"
                     >
                       <ChevronLeft className="size-4" strokeWidth={1.25} />
                       Précédent
@@ -289,7 +289,7 @@ export function AdminScrutinsPage() {
                       type="button"
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                       disabled={safePage >= totalPages || filteredRows.length === 0}
-                      className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-40 dark:border-white/[0.1] dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-white/[0.06]"
+                      className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-40 dark:border-white/[0.1] dark:bg-night-900 dark:text-slate-200 dark:hover:bg-white/[0.06]"
                     >
                       Suivant
                       <ChevronRight className="size-4" strokeWidth={1.25} />

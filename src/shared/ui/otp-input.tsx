@@ -1,4 +1,4 @@
-import { useCallback, useRef, type ClipboardEvent, type KeyboardEvent } from 'react'
+import { useCallback, useRef, useState, type ClipboardEvent, type KeyboardEvent } from 'react'
 import { motion } from 'framer-motion'
 import { useSiteTheme } from './site-theme'
 
@@ -20,6 +20,7 @@ export function OtpInput({ value, onChange, isDark: isDarkProp, id, disabled, 'a
   const { theme } = useSiteTheme()
   const isDark = isDarkProp ?? theme === 'dark'
   const inputsRef = useRef<(HTMLInputElement | null)[]>([])
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null)
 
   const digits = Array.from({ length: LEN }, (_, i) => value[i] ?? '')
 
@@ -93,28 +94,28 @@ export function OtpInput({ value, onChange, isDark: isDarkProp, id, disabled, 'a
     }
   }
 
-  const boxBaseClass = `relative flex h-14 w-11 shrink-0 items-center justify-center rounded-2xl border-2 text-center text-2xl font-bold tabular-nums outline-none transition-all duration-200 sm:h-16 sm:w-12 sm:text-3xl`
+  const boxBaseClass = `relative flex h-13 w-10 shrink-0 items-center justify-center rounded-xl border text-center font-mono text-xl font-medium tabular-nums outline-none transition-[border-color,box-shadow,background-color] duration-200 sm:h-14 sm:w-12 sm:text-2xl`
 
   const getBoxClass = (index: number) => {
-    const isFocused = typeof document !== 'undefined' && document.activeElement === inputsRef.current[index]
+    const isFocused = focusedIndex === index
     const hasValue = digits[index] !== ''
 
     if (isDark) {
       return `${boxBaseClass} ${
         isFocused
-          ? 'border-blue-500 bg-blue-500/10 ring-4 ring-blue-500/20 text-white'
+          ? 'border-aqua-400/80 bg-aqua-400/[0.06] ring-4 ring-aqua-400/15 text-white'
           : hasValue
-            ? 'border-slate-700 bg-slate-800 text-white'
-            : 'border-slate-800 bg-slate-900/50 text-slate-400'
+            ? 'border-white/20 bg-white/[0.06] text-white'
+            : 'border-white/10 bg-white/[0.02] text-slate-400'
       }`
     }
 
     return `${boxBaseClass} ${
       isFocused
-        ? 'border-blue-600 bg-blue-50 ring-4 ring-blue-600/10 text-slate-950'
+        ? 'border-aqua-500 bg-white ring-4 ring-aqua-400/15 text-slate-950'
         : hasValue
-          ? 'border-slate-200 bg-white text-slate-950 shadow-sm'
-          : 'border-slate-100 bg-slate-50/50 text-slate-400'
+          ? 'border-slate-300 bg-white text-slate-950 shadow-soft'
+          : 'border-slate-200 bg-slate-50 text-slate-400'
     }`
   }
 
@@ -133,8 +134,8 @@ export function OtpInput({ value, onChange, isDark: isDarkProp, id, disabled, 'a
               key={i}
               initial={false}
               animate={{
-                scale: digits[i] ? 1.05 : 1,
-                y: digits[i] ? -2 : 0
+                scale: digits[i] ? 1.03 : 1,
+                y: digits[i] ? -1 : 0
               }}
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               className="relative"
@@ -149,7 +150,11 @@ export function OtpInput({ value, onChange, isDark: isDarkProp, id, disabled, 'a
                 maxLength={i === 0 ? 6 : 1}
                 disabled={disabled}
                 value={digits[i]}
-                onFocus={() => handleFocus(i)}
+                onFocus={() => {
+                  setFocusedIndex(i)
+                  handleFocus(i)
+                }}
+                onBlur={() => setFocusedIndex((cur) => (cur === i ? null : cur))}
                 onChange={(e) => handleChange(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(i, e)}
                 className={getBoxClass(i)}
@@ -158,7 +163,7 @@ export function OtpInput({ value, onChange, isDark: isDarkProp, id, disabled, 'a
               {value.length === i && !disabled && (
                 <motion.div
                   layoutId="otp-cursor"
-                  className="absolute bottom-3 left-1/2 h-1 w-4 -translate-x-1/2 rounded-full bg-blue-500"
+                  className="absolute bottom-2.5 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-aqua-500"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: [0, 1, 0] }}
                   transition={{ duration: 1, repeat: Infinity }}
@@ -168,7 +173,7 @@ export function OtpInput({ value, onChange, isDark: isDarkProp, id, disabled, 'a
           ))}
         </div>
 
-        <div className={`h-1 w-2 rounded-full ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`} />
+        <div aria-hidden className={`h-px w-3 ${isDark ? 'bg-white/20' : 'bg-slate-300'}`} />
 
         <div className="flex gap-2 sm:gap-3">
           {[3, 4, 5].map((i) => (
@@ -176,8 +181,8 @@ export function OtpInput({ value, onChange, isDark: isDarkProp, id, disabled, 'a
               key={i}
               initial={false}
               animate={{
-                scale: digits[i] ? 1.05 : 1,
-                y: digits[i] ? -2 : 0
+                scale: digits[i] ? 1.03 : 1,
+                y: digits[i] ? -1 : 0
               }}
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               className="relative"
@@ -192,7 +197,11 @@ export function OtpInput({ value, onChange, isDark: isDarkProp, id, disabled, 'a
                 maxLength={1}
                 disabled={disabled}
                 value={digits[i]}
-                onFocus={() => handleFocus(i)}
+                onFocus={() => {
+                  setFocusedIndex(i)
+                  handleFocus(i)
+                }}
+                onBlur={() => setFocusedIndex((cur) => (cur === i ? null : cur))}
                 onChange={(e) => handleChange(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(i, e)}
                 className={getBoxClass(i)}
@@ -201,7 +210,7 @@ export function OtpInput({ value, onChange, isDark: isDarkProp, id, disabled, 'a
               {value.length === i && !disabled && (
                 <motion.div
                   layoutId="otp-cursor"
-                  className="absolute bottom-3 left-1/2 h-1 w-4 -translate-x-1/2 rounded-full bg-blue-500"
+                  className="absolute bottom-2.5 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-aqua-500"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: [0, 1, 0] }}
                   transition={{ duration: 1, repeat: Infinity }}
@@ -211,8 +220,8 @@ export function OtpInput({ value, onChange, isDark: isDarkProp, id, disabled, 'a
           ))}
         </div>
       </div>
-      <p className={`mt-6 text-center text-xs font-medium tracking-wide uppercase ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-        Sécurisé par VoteBGDE Cloud
+      <p className={`mt-5 text-center text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+        Vous pouvez coller le code directement.
       </p>
     </div>
   )

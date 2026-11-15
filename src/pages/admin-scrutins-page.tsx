@@ -22,7 +22,7 @@ import {
   Panel,
   StatusBadge,
 } from '../shared/ui/admin-ui'
-import { adminInput, formatDateTime, table, tableWrap, td, th, tr } from '../shared/ui/admin-ui-classes'
+import { adminInput, formatDateTime, table, tableWrap, td, th, trClickable } from '../shared/ui/admin-ui-classes'
 
 const STATUS_FILTERS = ['ALL', 'OPEN', 'SCHEDULED', 'DRAFT', 'CLOSED', 'ARCHIVED'] as const
 type StatusFilter = (typeof STATUS_FILTERS)[number]
@@ -225,7 +225,7 @@ export function AdminScrutinsPage() {
                   {pageRows.map((row) => (
                     <tr
                       key={row.id}
-                      className={`${tr} cursor-pointer`}
+                      className={trClickable}
                       onClick={() => navigate(`${ADMIN_PRIVATE_PATH}/scrutins/${row.id}`)}
                     >
                       <td className={td}>

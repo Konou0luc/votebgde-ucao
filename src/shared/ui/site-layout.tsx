@@ -5,14 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import logo from '../../../assets/logo.png'
 import { Sun, Moon, List, X, ArrowRight, ArrowUpRight, InstagramLogo, LinkedinLogo, ShieldCheck } from '@phosphor-icons/react'
 import { getInitialSiteTheme, SiteThemeContext } from './site-theme'
+import { useVotePhase } from '../../modules/student-vote/hooks'
 import { ToastViewport } from './toast-viewport'
 import { ButtonLink } from './Button'
 
-const navLinks = [
-  { to: '/', label: 'Accueil' },
-  { to: '/vote', label: 'Voter' },
-  { to: '/resultats', label: 'Résultats' },
-]
 
 function Brand({ size = 'md' }: { size?: 'md' | 'lg' }) {
   return (
@@ -39,6 +35,13 @@ export function SiteLayout({ children }: PropsWithChildren) {
   const [theme, setTheme] = useState(() => getInitialSiteTheme())
   const [scrolled, setScrolled] = useState(() => typeof window !== 'undefined' && window.scrollY > 12)
   const isHome = location.pathname === '/'
+  // Tant qu'aucun vote n'est ouvert : « S'inscrire » ; pendant un vote : « Voter ».
+  const { cta } = useVotePhase()
+  const navLinks = [
+    { to: '/', label: 'Accueil' },
+    cta,
+    { to: '/resultats', label: 'Résultats' },
+  ]
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
@@ -152,8 +155,8 @@ export function SiteLayout({ children }: PropsWithChildren) {
               </button>
 
               <span className="hidden md:block">
-                <ButtonLink to="/vote" size="sm" trailing={<ArrowRight size={14} weight="bold" />}>
-                  Voter
+                <ButtonLink to={cta.to} size="sm" trailing={<ArrowRight size={14} weight="bold" />}>
+                  {cta.label}
                 </ButtonLink>
               </span>
 
@@ -219,8 +222,8 @@ export function SiteLayout({ children }: PropsWithChildren) {
                   transition={{ delay: 0.25 }}
                   className="mt-auto space-y-4"
                 >
-                  <ButtonLink to="/vote" size="lg" onClick={() => setIsMobileMenuOpen(false)} className="w-full" trailing={<ArrowRight size={18} weight="bold" />}>
-                    Lancer le vote
+                  <ButtonLink to={cta.to} size="lg" onClick={() => setIsMobileMenuOpen(false)} className="w-full" trailing={<ArrowRight size={18} weight="bold" />}>
+                    {cta.label === 'Voter' ? 'Lancer le vote' : "S'inscrire au vote"}
                   </ButtonLink>
                   <p className="flex items-center justify-center gap-2 text-xs text-slate-500">
                     <ShieldCheck size={14} className="text-crimson-500" /> Votre vote reste secret

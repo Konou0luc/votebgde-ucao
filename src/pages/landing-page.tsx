@@ -69,7 +69,7 @@ export function LandingPage() {
         <div className="section-container flex flex-col items-center justify-center pb-20 pt-32 text-center md:min-h-[min(80dvh,760px)] md:pb-24 md:pt-40">
           <RevealGroup immediate step={0.09} className="flex flex-col items-center">
             <RevealItem>
-              <Link to={activeScrutin ? '/vote' : '/resultats'} className="eyebrow group transition-colors hover:border-slate-300 dark:hover:border-white/20">
+              <Link to={activeScrutin ? '/vote' : '/inscription'} className="eyebrow group transition-colors hover:border-slate-300 dark:hover:border-white/20">
                 <span className="relative flex size-2">
                   {activeScrutin && (
                     <span className="absolute inline-flex size-full animate-ping rounded-full bg-crimson-500 opacity-70" />
@@ -80,7 +80,7 @@ export function LandingPage() {
                   ? 'Chargement du vote…'
                   : activeScrutin
                     ? `Vote ${voteStatusLabelPublic(activeScrutin.status).toLowerCase()} · ${activeScrutin.title}`
-                    : 'Aucun vote en cours'}
+                    : 'Inscriptions ouvertes · aucun vote en cours'}
                 <ArrowRight size={12} className="text-slate-400 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </RevealItem>
@@ -102,8 +102,13 @@ export function LandingPage() {
             </RevealItem>
 
             <RevealItem className="mt-10 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
-              <ButtonLink to="/vote" size="lg" className="w-full sm:w-auto" trailing={<ArrowRight size={16} weight="bold" />}>
-                Voter maintenant
+              <ButtonLink
+                to={activeScrutin ? '/vote' : '/inscription'}
+                size="lg"
+                className="w-full sm:w-auto"
+                trailing={<ArrowRight size={16} weight="bold" />}
+              >
+                {activeScrutin ? 'Voter maintenant' : "S'inscrire maintenant"}
               </ButtonLink>
               {lists.length > 0 ? (
                 <ButtonAnchor href="#candidats" variant="ghost" size="lg" className="w-full sm:w-auto">
@@ -218,8 +223,8 @@ export function LandingPage() {
               <ol className="space-y-2">
                 {steps.map(({ title, desc, icon: Icon }, i) => (
                   <RevealItem key={title}>
-                    <li className="group relative flex gap-5 rounded-2xl p-3 transition-colors duration-300 hover:bg-slate-50 dark:hover:bg-white/[0.03]">
-                      <div className="relative z-10 flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-soft transition-colors duration-300 group-hover:border-brand-600 group-hover:bg-brand-600 group-hover:text-white dark:border-white/10 dark:bg-night-900 dark:text-slate-400">
+                    <li className="relative flex gap-5 rounded-2xl p-3">
+                      <div className="relative z-10 flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-soft dark:border-white/10 dark:bg-night-900 dark:text-slate-400">
                         <Icon size={18} weight="duotone" />
                       </div>
                       <div className="pt-1.5">
@@ -264,7 +269,7 @@ export function LandingPage() {
                     to={`/candidat/${list.id}`}
                     className="group block h-full rounded-2xl focus-visible:outline-offset-4"
                   >
-                    <SpotlightCard className="flex h-full flex-col p-2 group-hover:-translate-y-1">
+                    <SpotlightCard className="flex h-full flex-col p-2 group-hover:-translate-y-1 group-hover:border-brand-300 group-hover:shadow-lift dark:group-hover:border-brand-400/50">
                       <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-slate-100 dark:bg-night-800">
                         {list.videoUrl ? (
                           <video
@@ -322,20 +327,24 @@ export function LandingPage() {
           </div>
           <Reveal className="relative">
             <h2 className="mx-auto max-w-2xl text-[clamp(2.25rem,5vw,3.75rem)] font-semibold leading-[1.02] tracking-[-0.035em] text-white">
-              Prêt à faire <span className="underline decoration-crimson-500 decoration-4 underline-offset-[10px]">votre choix ?</span>
+              {activeScrutin ? 'Prêt à faire ' : 'Prêt pour le '}
+              <span className="underline decoration-crimson-500 decoration-4 underline-offset-[10px]">
+                {activeScrutin ? 'votre choix ?' : 'prochain vote ?'}
+              </span>
             </h2>
             <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-brand-100 md:text-lg">
-              Rejoignez la communauté étudiante de l’UCAO et participez au vote en toute confiance. Le futur du campus
-              commence par votre vote.
+              {activeScrutin
+                ? 'Rejoignez la communauté étudiante de l’UCAO et participez au vote en toute confiance. Le futur du campus commence par votre vote.'
+                : 'Inscrivez-vous dès maintenant : seuls les étudiants inscrits et vérifiés pourront voter à l’ouverture du scrutin.'}
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <ButtonLink
-                to="/vote"
+                to={activeScrutin ? '/vote' : '/inscription'}
                 size="lg"
                 className="w-full !bg-white !text-brand-800 hover:!bg-brand-50 sm:w-auto"
                 trailing={<ArrowRight size={16} weight="bold" />}
               >
-                Commencer à voter
+                {activeScrutin ? 'Commencer à voter' : "S'inscrire"}
               </ButtonLink>
               <ButtonLink
                 to="/resultats"

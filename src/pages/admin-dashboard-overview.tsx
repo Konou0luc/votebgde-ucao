@@ -29,7 +29,7 @@ import {
   StatCard,
   StatusBadge,
 } from '../shared/ui/admin-ui'
-import { formatDate, formatNumber, table, tableWrap, td, th, tr } from '../shared/ui/admin-ui-classes'
+import { formatDate, formatNumber, table, tableWrap, td, th, trClickable } from '../shared/ui/admin-ui-classes'
 
 function greeting() {
   const h = new Date().getHours()
@@ -160,7 +160,7 @@ export function AdminDashboardOverview() {
                   {recent.map((row) => (
                     <tr
                       key={row.id}
-                      className={`${tr} cursor-pointer`}
+                      className={trClickable}
                       onClick={() => navigate(`${ADMIN_PRIVATE_PATH}/scrutins/${row.id}`)}
                     >
                       <td className={td}>

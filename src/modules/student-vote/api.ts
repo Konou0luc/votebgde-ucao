@@ -8,6 +8,10 @@ import type {
   OtpVerifyPayload,
   OtpVerifyResponse,
   PublishedScrutinResults,
+  RegistrationOptions,
+  RegistrationStartResult,
+  StudentRegistrationPayload,
+  StudentRegistrationResult,
   VotePayload,
   VoteResponse,
 } from './types'
@@ -74,6 +78,23 @@ export async function getActiveScrutin(): Promise<ActiveScrutin> {
       order: row.order,
     })),
   }
+}
+
+export async function getRegistrationOptions(): Promise<RegistrationOptions> {
+  const response = await httpClient.get<ApiEnvelope<RegistrationOptions>>('/registration/options')
+  return response.data.data
+}
+
+/** Étape 1 : contrôle des données et envoi d'un code à l'e-mail saisi. */
+export async function postRegistrationStart(payload: StudentRegistrationPayload): Promise<RegistrationStartResult> {
+  const response = await httpClient.post<ApiEnvelope<RegistrationStartResult>>('/registration/start', payload)
+  return response.data.data
+}
+
+/** Étape 2 : vérification du code ; l'étudiant est alors inscrit (e-mail lié au matricule). */
+export async function postRegistrationVerify(payload: { sessionToken: string; otp: string }): Promise<StudentRegistrationResult> {
+  const response = await httpClient.post<ApiEnvelope<StudentRegistrationResult>>('/registration/verify', payload)
+  return response.data.data
 }
 
 export async function postSendOtp(payload: OtpSendPayload): Promise<OtpSendResponse> {
@@ -195,6 +216,9 @@ export function getStudentFlowErrorMessage(error: unknown) {
   }
 
   if (statusCode === 403) {
+    if (/ne correspond pas/i.test(backendMessage)) {
+      return 'Cet e-mail ne correspond pas à celui utilisé lors de l’inscription de ce matricule. Utilisez l’e-mail de votre inscription.'
+    }
     return backendMessage || 'Action non autorisée pour le moment.'
   }
 
@@ -207,4 +231,34 @@ export function getStudentFlowErrorMessage(error: unknown) {
   }
 
   return 'Impossible de traiter la demande pour le moment.'
+}
+
+/** Messages d'erreur clairs pour le formulaire d'inscription. */
+export function getRegistrationErrorMessage(error: unknown): string {
+  if (!isAxiosError(error)) return 'Une erreur inattendue est survenue. Veuillez réessayer.'
+  const status = error.response?.status
+  const data = error.response?.data as { message?: unknown } | undefined
+  const backendMessage = typeof data?.message === 'string' ? data.message.trim() : ''
+
+  if (status === 409) {
+    return /mail/i.test(backendMessage)
+      ? 'Cet e-mail est déjà utilisé par un autre étudiant.'
+      : 'Ce matricule est déjà inscrit. Si vous pensez qu’il s’agit d’une erreur, contactez l’administration.'
+  }
+  if (status === 401) {
+    const details = (error.response?.data as { errors?: Array<{ attemptsLeft?: number }> } | undefined)?.errors
+    const left = details?.[0]?.attemptsLeft
+    return typeof left === 'number' && left > 0
+      ? `Code incorrect. Il vous reste ${left} tentative${left > 1 ? 's' : ''}.`
+      : 'Code incorrect.'
+  }
+  if (status === 410) return 'Ce code a expiré. Demandez un nouveau code.'
+  if (status === 423) return 'Trop de tentatives. Demandez un nouveau code.'
+  if (status === 404) return 'Votre session d’inscription a expiré. Recommencez l’inscription.'
+  if (status === 403) return 'Les inscriptions sont fermées : un vote est en cours.'
+  if (status === 422) return 'Institut, filière ou année invalide. Vérifiez vos choix.'
+  if (status === 400) return 'Certaines informations sont invalides. Vérifiez le formulaire.'
+  if (status === 429) return 'Trop de tentatives. Patientez quelques minutes avant de réessayer.'
+  if (status === 503) return 'Le service d’inscription est momentanément indisponible. Réessayez plus tard.'
+  return backendMessage || 'Impossible d’enregistrer votre inscription pour le moment.'
 }

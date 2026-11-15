@@ -1,7 +1,9 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Check } from '@phosphor-icons/react'
-import { Backdrop } from '../shared/ui/backdrop'
+import { ArrowRight, CalendarBlank, Check } from '@phosphor-icons/react'
+import { Backdrop, LoadingBlock } from '../shared/ui/backdrop'
+import { ButtonLink } from '../shared/ui/Button'
+import { useVotePhase } from '../modules/student-vote/hooks'
 import { EASE_OUT } from '../shared/ui/motion-presets'
 
 const STEPS = [
@@ -72,6 +74,34 @@ function Stepper({ current }: { current: number }) {
 export function StudentVotePage() {
   const location = useLocation()
   const current = currentStepIndex(location.pathname)
+  const { isVoteOpen, isLoading } = useVotePhase()
+
+  if (isLoading) return <LoadingBlock label="Chargement du vote…" />
+
+  // Aucun vote ouvert : on oriente vers l'inscription plutôt que d'afficher un formulaire inutilisable.
+  if (!isVoteOpen) {
+    return (
+      <div className="relative isolate">
+        <Backdrop pattern="dots" />
+        <div className="relative mx-auto flex min-h-[calc(100dvh-7rem)] max-w-xl flex-col justify-center px-4 py-12 sm:px-6">
+          <div className="rounded-3xl border border-slate-200/80 bg-white p-8 text-center shadow-lift dark:border-white/[0.08] dark:bg-night-900/70 sm:p-10">
+            <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">
+              <CalendarBlank size={26} weight="duotone" />
+            </div>
+            <h1 className="mt-6 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">Le vote n’est pas encore ouvert</h1>
+            <p className="mt-3 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+              Inscrivez-vous dès maintenant : seuls les étudiants inscrits pourront voter à l’ouverture du scrutin.
+            </p>
+            <div className="mt-8 flex justify-center">
+              <ButtonLink to="/inscription" size="lg" variant="accent" trailing={<ArrowRight size={16} weight="bold" />}>
+                S’inscrire
+              </ButtonLink>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="relative isolate flex min-h-[calc(100dvh-6rem)] justify-center px-4 pb-16 pt-6 sm:px-6 lg:px-8">

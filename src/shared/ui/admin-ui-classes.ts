@@ -13,7 +13,9 @@ export const th =
   'border-b border-slate-200/80 bg-slate-50/80 px-5 py-3 text-left text-[13px] font-medium text-slate-500 first:pl-5 last:pr-5 sm:first:pl-6 sm:last:pr-6 dark:border-white/[0.07] dark:bg-white/[0.02] dark:text-slate-400'
 export const td =
   'border-b border-slate-100 px-5 py-4 align-middle text-slate-700 first:pl-5 last:pr-5 sm:first:pl-6 sm:last:pr-6 dark:border-white/[0.05] dark:text-slate-300'
-export const tr = 'transition-colors hover:bg-slate-50/70 dark:hover:bg-white/[0.02] [&:last-child>td]:border-b-0'
+export const tr = '[&:last-child>td]:border-b-0'
+/** Ligne cliquable (ouvre une page) : seule à réagir au survol. */
+export const trClickable = `${tr} cursor-pointer transition-colors hover:bg-slate-50/70 dark:hover:bg-white/[0.02]`
 
 export const STATUS_TONES: Record<string, { dot: string; badge: string }> = {
   OPEN: {

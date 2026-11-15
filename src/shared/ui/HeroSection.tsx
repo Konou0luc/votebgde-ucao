@@ -3,7 +3,7 @@ import { Backdrop } from './backdrop'
 
 /**
  * Section d'en-tête plein écran : grille masquée, halos radiaux,
- * particules interactives et fondu vers la section suivante.
+ * particules animées et fondu vers la section suivante.
  */
 export function HeroSection({
   children,

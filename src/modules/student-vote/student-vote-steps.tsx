@@ -135,7 +135,7 @@ export function MatriculeStepPage() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="vote-email" className="tt-label">E-mail</label>
+                <label htmlFor="vote-email" className="tt-label">E-mail utilisé à l’inscription</label>
                 <div className="group relative">
                   <EnvelopeSimple className="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-brand-600" />
                   <input
@@ -150,6 +150,7 @@ export function MatriculeStepPage() {
                     required
                   />
                 </div>
+                <p className="text-xs text-slate-500">Votre matricule est lié à cet e-mail : un autre e-mail sera refusé.</p>
               </div>
 
               <Button

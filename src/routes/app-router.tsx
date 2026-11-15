@@ -5,6 +5,7 @@ import { LandingPage } from '../pages/landing-page'
 import { CandidateDetailPage } from '../pages/candidate-detail-page'
 import { StudentVotePage } from '../pages/student-vote-page'
 import { VoteResultsPage } from '../pages/vote-results-page'
+import { RegistrationPage } from '../pages/registration-page'
 import { NotFoundPage } from '../pages/not-found-page'
 import { ADMIN_PRIVATE_PATH } from '../shared/constants/routes'
 import { LoadingBlock } from '../shared/ui/backdrop'
@@ -21,6 +22,14 @@ export function AppRouter() {
           element={
             <SiteLayout>
               <LandingPage />
+            </SiteLayout>
+          }
+        />
+        <Route
+          path="/inscription"
+          element={
+            <SiteLayout>
+              <RegistrationPage />
             </SiteLayout>
           }
         />

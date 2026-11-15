@@ -36,7 +36,7 @@ export function ParticleField({
   density = 14000,
   maxParticles = 90,
   linkDistance = 130,
-  interactive = true,
+  interactive = false,
   forceDark = false,
 }: ParticleFieldProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)

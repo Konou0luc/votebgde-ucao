@@ -83,3 +83,47 @@ export type PublishedScrutinResults = {
   totalVotes: number
   results: ScrutinResultRow[]
 }
+
+/* ─── Inscription des étudiants ─── */
+
+export type StudentLevelName = 'L1' | 'L2' | 'L3'
+
+export type RegistrationOptions = {
+  /** false lorsqu'un vote est en cours : les inscriptions sont fermées */
+  isOpen: boolean
+  faculties: Array<{
+    code: string
+    label: string
+    name: string
+    departments: Array<{ code: string; name: string }>
+  }>
+  levels: Array<{ name: string; rank: number }>
+}
+
+export type StudentRegistrationPayload = {
+  matricule: string
+  firstName: string
+  lastName: string
+  email: string
+  facultyCode: string
+  departmentCode: string
+  levelName: StudentLevelName
+}
+
+export type StudentRegistrationResult = {
+  matricule: string
+  firstName: string
+  lastName: string
+  facultyCode: string
+  departmentCode: string
+  levelName: string
+  academicYear: string
+  registeredAt: string
+}
+
+export type RegistrationStartResult = {
+  sessionToken: string
+  expiresInMinutes: number
+  emailMasked: string
+  debugOtp?: string
+}

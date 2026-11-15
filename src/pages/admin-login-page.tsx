@@ -124,13 +124,13 @@ export function AdminLoginPage() {
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#fafbfd] dark:bg-night-950 md:grid md:grid-cols-[1.05fr_1fr]">
       {/* Panneau visuel */}
-      <div className="relative isolate h-[38vh] shrink-0 overflow-hidden bg-night-950 md:sticky md:top-0 md:h-[100dvh]">
+      <div className="relative isolate h-[38vh] shrink-0 overflow-hidden bg-brand-950 md:sticky md:top-0 md:h-[100dvh]">
         <img
           src={campusVisual}
           alt="Campus universitaire — environnement institutionnel VoteBGDE"
           className="absolute inset-0 h-full w-full object-cover opacity-40"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-night-950/60 via-night-950/70 to-night-950" aria-hidden />
+        <div className="absolute inset-0 bg-brand-950/85" aria-hidden />
         <div className="dark">
           <Backdrop pattern="grid" particles forceDark />
         </div>
@@ -138,21 +138,21 @@ export function AdminLoginPage() {
         <div className="relative flex h-full flex-col justify-end p-6 md:justify-between md:p-12">
           <div className="hidden items-center gap-2.5 md:flex">
             <span className="flex size-9 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 backdrop-blur-md">
-              <BadgeCheck className="size-5 text-aqua-300" strokeWidth={1.6} />
+              <BadgeCheck className="size-5 text-white" strokeWidth={1.6} />
             </span>
             <span className="text-sm font-semibold tracking-tight text-white">
-              Vote<span className="text-aqua-300">BGDE</span>
+              Vote<span className="text-white/70">BGDE</span>
             </span>
           </div>
 
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
             <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-white/80 backdrop-blur-md">
-              <span className="size-1.5 rounded-full bg-aqua-400 shadow-[0_0_8px_rgba(45,212,191,0.9)]" />
+              <span className="size-1.5 rounded-full bg-crimson-500" />
               Espace administration
             </span>
             <h1 className="mt-5 max-w-[18ch] text-3xl font-semibold leading-[1.05] tracking-[-0.03em] text-white md:text-5xl">
               Pilotage institutionnel{' '}
-              <span className="bg-gradient-to-r from-brand-300 to-aqua-300 bg-clip-text text-transparent">du vote</span>
+              <span className="underline decoration-crimson-500 decoration-4 underline-offset-8">du vote</span>
             </h1>
             <p className="mt-5 hidden max-w-[42ch] text-sm leading-relaxed text-slate-400 md:block lg:text-base">
               Accès réservé aux rôles autorisés. Les votes et la publication des résultats sont tracés et audités de bout en bout.
@@ -168,7 +168,7 @@ export function AdminLoginPage() {
             <motion.div key="credentials" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }} className="space-y-8">
               <div className="space-y-3">
                 <div className="inline-flex size-11 items-center justify-center rounded-xl bg-white shadow-soft ring-1 ring-slate-200/80 dark:bg-white/[0.05] dark:ring-white/10">
-                  <ShieldCheck className="size-5 text-brand-600 dark:text-aqua-300" strokeWidth={1.6} />
+                  <ShieldCheck className="size-5 text-brand-600 dark:text-brand-300" strokeWidth={1.6} />
                 </div>
                 <h2 className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">Administration</h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Identifiez-vous pour gérer les votes en cours.</p>
@@ -178,7 +178,7 @@ export function AdminLoginPage() {
                 <div className="space-y-2">
                   <label htmlFor="admin-email" className="tt-label">Email professionnel</label>
                   <div className="group relative">
-                    <Mail className="pointer-events-none absolute left-3.5 top-1/2 size-[18px] -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-aqua-500" strokeWidth={1.6} />
+                    <Mail className="pointer-events-none absolute left-3.5 top-1/2 size-[18px] -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-brand-600" strokeWidth={1.6} />
                     <input
                       id="admin-email"
                       type="email"
@@ -194,7 +194,7 @@ export function AdminLoginPage() {
                 <div className="space-y-2">
                   <label htmlFor="admin-password" className="tt-label">Mot de passe</label>
                   <div className="group relative">
-                    <Lock className="pointer-events-none absolute left-3.5 top-1/2 size-[18px] -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-aqua-500" strokeWidth={1.6} />
+                    <Lock className="pointer-events-none absolute left-3.5 top-1/2 size-[18px] -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-brand-600" strokeWidth={1.6} />
                     <input
                       id="admin-password"
                       type={showPassword ? 'text' : 'password'}
@@ -232,7 +232,7 @@ export function AdminLoginPage() {
             <motion.div key="otp" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }} className="space-y-8">
               <div className="space-y-3">
                 <div className="inline-flex size-11 items-center justify-center rounded-xl bg-white shadow-soft ring-1 ring-slate-200/80 dark:bg-white/[0.05] dark:ring-white/10">
-                  <KeyRound className="size-5 text-brand-600 dark:text-aqua-300" strokeWidth={1.6} />
+                  <KeyRound className="size-5 text-brand-600 dark:text-brand-300" strokeWidth={1.6} />
                 </div>
                 <h2 className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">Code de sécurité</h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400">

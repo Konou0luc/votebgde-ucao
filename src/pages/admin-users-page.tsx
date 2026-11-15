@@ -1,27 +1,26 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import {
-  Loader2,
-  Shield,
-  Trash2,
-  Pencil,
-  ShieldCheck,
-  ShieldAlert,
-  ArrowLeft,
-  UserPlus,
-} from 'lucide-react'
+import { ShieldAlert, ShieldCheck, Trash2, Pencil, UserPlus, Users } from 'lucide-react'
 import { useAdminAuthStore } from '../modules/admin-dashboard/auth-store'
 import { useToastStore } from '../shared/ui/toast-store'
-import {
-  useAdminUsersQuery,
-  useDeleteAdminMutation,
-} from '../modules/admin-dashboard/hooks'
+import { useAdminUsersQuery, useDeleteAdminMutation } from '../modules/admin-dashboard/hooks'
 import { getAdminErrorMessage } from '../modules/admin-dashboard/api'
+import { permissionLabel, roleLabel } from '../modules/admin-dashboard/permission-labels'
 import { ADMIN_PRIVATE_PATH } from '../shared/constants/routes'
 import { ConfirmModal } from '../shared/ui/confirm-modal'
+import {
+  AdminButtonLink,
+  Badge,
+  EmptyState,
+  ErrorState,
+  IconButton,
+  IconLink,
+  LoadingState,
+  PageHeader,
+  Panel,
+} from '../shared/ui/admin-ui'
+import { formatDateTime, table, tableWrap, td, th, tr } from '../shared/ui/admin-ui-classes'
 
 export function AdminUsersPage() {
-  const navigate = useNavigate()
   const admin = useAdminAuthStore((s) => s.admin)
   const pushToast = useToastStore((s) => s.pushToast)
   const usersQuery = useAdminUsersQuery()
@@ -34,16 +33,14 @@ export function AdminUsersPage() {
 
   if (admin?.role !== 'SUPER_ADMIN') {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center p-8 text-center">
-        <div className="mb-4 rounded-full bg-rose-50 p-4 dark:bg-rose-500/10">
-          <ShieldAlert className="size-12 text-rose-600" strokeWidth={1.5} />
-        </div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Accès Restreint</h1>
-        <p className="mt-2 text-slate-500">Seuls les Super Administrateurs peuvent accéder à cette page.</p>
-        <Link to={ADMIN_PRIVATE_PATH} className="mt-6 font-medium text-blue-600 hover:underline">
-          Retour au tableau de bord
-        </Link>
-      </div>
+      <Panel>
+        <EmptyState
+          icon={ShieldAlert}
+          title="Accès restreint"
+          description="Seuls les super administrateurs peuvent accéder à cette page."
+          action={<AdminButtonLink to={ADMIN_PRIVATE_PATH}>Retour au tableau de bord</AdminButtonLink>}
+        />
+      </Panel>
     )
   }
 
@@ -59,104 +56,110 @@ export function AdminUsersPage() {
     }
   }
 
+  const users = usersQuery.data ?? []
+
   return (
-    <div className="mx-auto max-w-6xl pb-24 pt-12">
-      <header className="mb-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-        <div className="space-y-4">
-          <Link
-            to={ADMIN_PRIVATE_PATH}
-            className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-          >
-            <ArrowLeft className="size-3" strokeWidth={2.5} />
-            Dashboard
-          </Link>
-          <div className="space-y-1">
-            <h1 className="text-4xl font-bold tracking-tighter text-slate-950 dark:text-white">
-              Gestion des Admins
-            </h1>
-            <p className="text-slate-500">Gérez les comptes et les permissions de l&apos;équipe.</p>
-          </div>
-        </div>
+    <div className="pb-12">
+      <PageHeader
+        title="Utilisateurs"
+        description="Gérez les comptes administrateurs et leurs permissions."
+        actions={
+          <AdminButtonLink to={`${ADMIN_PRIVATE_PATH}/utilisateurs/nouveau`} variant="primary" icon={UserPlus}>
+            Nouvel administrateur
+          </AdminButtonLink>
+        }
+      />
 
-        <button
-          onClick={() => navigate(`${ADMIN_PRIVATE_PATH}/utilisateurs/nouveau`)}
-          className="group relative inline-flex items-center gap-3 overflow-hidden rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-blue-700 active:scale-[0.98]"
-        >
-          <span className="relative z-10 flex items-center gap-2">
-            <UserPlus className="size-4" strokeWidth={2} />
-            Nouvel Admin
-          </span>
-        </button>
-      </header>
-
-      {usersQuery.isLoading ? (
-        <div className="flex h-64 items-center justify-center">
-          <Loader2 className="size-8 animate-spin text-blue-600" />
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {usersQuery.data?.map((user) => (
-            <div
-              key={user.id}
-              className="group relative rounded-2xl border border-slate-200 bg-white p-1.5 transition-all hover:border-blue-500/30 hover:shadow-xl hover:shadow-blue-500/5 dark:border-white/[0.08] dark:bg-night-900"
-            >
-              <div className="flex h-full flex-col rounded-xl bg-white p-6 dark:bg-night-950">
-                <div className="mb-4 flex items-start justify-between">
-                  <div className={`rounded-full p-2.5 ${user.role === 'SUPER_ADMIN' ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/10' : 'bg-blue-50 text-blue-600 dark:bg-blue-500/10'}`}>
-                    {user.role === 'SUPER_ADMIN' ? <ShieldCheck className="size-6" strokeWidth={1.5} /> : <Shield className="size-6" strokeWidth={1.5} />}
-                  </div>
-                  <div className="flex gap-1">
-                    <Link
-                      to={`${ADMIN_PRIVATE_PATH}/utilisateurs/${user.id}/modifier`}
-                      className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-blue-600 dark:hover:bg-white/5"
-                    >
-                      <Pencil className="size-4" />
-                    </Link>
-                    <button
-                      onClick={() => setConfirmDelete({ isOpen: true, userId: user.id })}
-                      disabled={user.id === admin?.id}
-                      className="rounded-full p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10 disabled:opacity-30"
-                    >
-                      <Trash2 className="size-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mb-6 space-y-1">
-                  <h3 className="truncate font-bold text-slate-900 dark:text-white">{user.email}</h3>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-bold uppercase tracking-widest ${user.role === 'SUPER_ADMIN' ? 'text-amber-600' : 'text-blue-600'}`}>
-                      {user.role.replace('_', ' ')}
-                    </span>
-                    <span className="h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-700" />
-                    <span className={`text-[10px] font-bold uppercase tracking-widest ${user.isActive ? 'text-emerald-600' : 'text-slate-400'}`}>
-                      {user.isActive ? 'Actif' : 'Inactif'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-auto space-y-3">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Permissions</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {user.permissions.length > 0 ? (
-                      user.permissions.map((p) => (
-                        <span
-                          key={p}
-                          className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:bg-white/5 dark:text-slate-400"
-                        >
-                          {p.split(':')[1]}
+      <Panel
+        title="Comptes administrateurs"
+        icon={Users}
+        description={usersQuery.data ? `${users.length} compte${users.length > 1 ? 's' : ''}` : undefined}
+        bodyClassName={users.length ? '!py-0' : ''}
+      >
+        {usersQuery.isLoading ? (
+          <LoadingState compact />
+        ) : usersQuery.isError ? (
+          <ErrorState>Impossible de charger les administrateurs.</ErrorState>
+        ) : users.length === 0 ? (
+          <EmptyState icon={Users} title="Aucun administrateur" />
+        ) : (
+          <div className={tableWrap}>
+            <table className={`${table} min-w-[820px]`}>
+              <thead>
+                <tr>
+                  <th className={th}>Compte</th>
+                  <th className={th}>Rôle</th>
+                  <th className={th}>Statut</th>
+                  <th className={th}>Permissions</th>
+                  <th className={th}>Dernière connexion</th>
+                  <th className={`${th} text-right`}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user) => {
+                  const isSelf = user.id === admin?.id
+                  const isSuper = user.role === 'SUPER_ADMIN'
+                  return (
+                    <tr key={user.id} className={tr}>
+                      <td className={td}>
+                        <div className="flex items-center gap-3">
+                          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-semibold text-white">
+                            {user.email.slice(0, 2).toUpperCase()}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="truncate font-medium text-slate-950 dark:text-white">{user.email}</p>
+                            {isSelf && <p className="text-[13px] text-slate-500">Vous</p>}
+                          </div>
+                        </div>
+                      </td>
+                      <td className={td}>
+                        <Badge tone={isSuper ? 'warning' : 'brand'} icon={isSuper ? ShieldCheck : undefined}>
+                          {roleLabel(user.role)}
+                        </Badge>
+                      </td>
+                      <td className={td}>
+                        <span className="inline-flex items-center gap-1.5 text-[15px]">
+                          <span className={`size-1.5 rounded-full ${user.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                          {user.isActive ? 'Actif' : 'Inactif'}
                         </span>
-                      ))
-                    ) : (
-                      <span className="text-[10px] italic text-slate-400 text-slate-500">Aucune permission</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+                      </td>
+                      <td className={td}>
+                        {isSuper ? (
+                          <span className="text-[13px] text-slate-500">Toutes</span>
+                        ) : user.permissions.length > 0 ? (
+                          <div className="flex max-w-xs flex-wrap gap-1" title={user.permissions.map(permissionLabel).join(', ')}>
+                            {user.permissions.slice(0, 2).map((p) => (
+                              <Badge key={p}>{permissionLabel(p)}</Badge>
+                            ))}
+                            {user.permissions.length > 2 && <Badge>+{user.permissions.length - 2}</Badge>}
+                          </div>
+                        ) : (
+                          <span className="text-[13px] text-slate-400">Aucune</span>
+                        )}
+                      </td>
+                      <td className={`${td} whitespace-nowrap text-[13px] tabular-nums text-slate-500`}>
+                        {user.lastLoginAt ? formatDateTime(user.lastLoginAt) : 'Jamais'}
+                      </td>
+                      <td className={`${td} text-right`}>
+                        <div className="flex items-center justify-end gap-0.5">
+                          <IconLink to={`${ADMIN_PRIVATE_PATH}/utilisateurs/${user.id}/modifier`} label={`Modifier ${user.email}`} icon={Pencil} />
+                          <IconButton
+                            label={isSelf ? 'Vous ne pouvez pas supprimer votre propre compte' : `Supprimer ${user.email}`}
+                            icon={Trash2}
+                            tone="danger"
+                            disabled={isSelf}
+                            onClick={() => setConfirmDelete({ isOpen: true, userId: user.id })}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Panel>
 
       <ConfirmModal
         isOpen={confirmDelete.isOpen}
@@ -164,6 +167,7 @@ export function AdminUsersPage() {
         message="Voulez-vous vraiment supprimer ce compte administrateur ? Cette action est irréversible."
         confirmLabel="Supprimer"
         variant="danger"
+        isLoading={deleteMutation.isPending}
         onConfirm={handleDelete}
         onCancel={() => setConfirmDelete({ isOpen: false, userId: null })}
       />

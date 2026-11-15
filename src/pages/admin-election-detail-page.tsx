@@ -1,20 +1,20 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
-  ArrowLeft,
-  Loader2,
   Plus,
   Trash2,
   Pencil,
   Megaphone,
   Archive,
-  BarChart3,
   PieChart,
   Users,
   Video,
   Image as ImageIcon,
-  ChevronLeft,
-  ChevronRight,
+  ListChecks,
+  CalendarClock,
+  FileText,
+  Trophy,
+  X,
 } from 'lucide-react'
 import { getAdminErrorMessage } from '../modules/admin-dashboard/api'
 import { useAdminAuthStore } from '../modules/admin-dashboard/auth-store'
@@ -33,29 +33,36 @@ import {
 import { canPublishResults, canWriteCandidateList, canWriteElection } from '../modules/admin-dashboard/permissions'
 import type { ScrutinStatus } from '../modules/admin-dashboard/types'
 import { ADMIN_PRIVATE_PATH } from '../shared/constants/routes'
-import { electionStatusLabelFr } from '../shared/utils/election-status-fr'
 import { isoToDatetimeLocalValue, toIsoFromDatetimeLocal } from '../shared/utils/datetime-local'
-
-function statusBadgeClass(status: string) {
-  const s = status.toUpperCase()
-  if (s === 'OPEN') return 'bg-emerald-50 text-emerald-900 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-500/25'
-  if (s === 'DRAFT') return 'bg-slate-100 text-slate-800 ring-slate-200 dark:bg-slate-500/15 dark:text-slate-200 dark:ring-slate-500/25'
-  if (s === 'SCHEDULED') return 'bg-amber-50 text-amber-900 ring-amber-200 dark:bg-amber-500/15 dark:text-amber-100 dark:ring-amber-500/25'
-  if (s === 'CLOSED') return 'bg-blue-50 text-blue-900 ring-blue-200 dark:bg-blue-500/15 dark:text-blue-100 dark:ring-blue-500/25'
-  if (s === 'ARCHIVED') return 'bg-slate-100 text-slate-700 ring-slate-300 dark:bg-slate-600/20 dark:text-slate-300 dark:ring-slate-500/20'
-  return 'bg-slate-100 text-slate-800 ring-slate-200'
-}
-
-
-
-function StatCard({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2.5 dark:border-white/[0.07] dark:bg-night-900/60 md:rounded-2xl md:px-4 md:py-3">
-      <p className="text-[9px] uppercase tracking-wide text-slate-500 md:text-[10px]">{label}</p>
-      <p className="mt-1 font-mono text-lg font-semibold tabular-nums text-slate-950 dark:text-white md:text-xl">{value}</p>
-    </div>
-  )
-}
+import {
+  AdminButton,
+  AdminButtonLink,
+  Badge,
+  EmptyState,
+  ErrorState,
+  Field,
+  FormError,
+  IconButton,
+  IconLink,
+  LoadingState,
+  PageHeader,
+  Pagination,
+  Panel,
+  ProgressBar,
+  StatusBadge,
+} from '../shared/ui/admin-ui'
+import {
+  adminInput,
+  adminSelect,
+  adminTextarea,
+  formatDateTime,
+  formatNumber,
+  table,
+  tableWrap,
+  td,
+  th,
+  tr,
+} from '../shared/ui/admin-ui-classes'
 
 export function AdminElectionDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -229,116 +236,80 @@ export function AdminElectionDetailPage() {
   }
 
   if (scrutinsQuery.isLoading || !id) {
-    return (
-      <div className="flex min-h-[40dvh] flex-col items-center justify-center gap-3">
-        <Loader2 className="size-8 animate-spin text-blue-600 dark:text-blue-400" />
-        <p className="text-sm text-slate-600 dark:text-slate-400">Chargement...</p>
-      </div>
-    )
+    return <LoadingState label="Chargement de l'élection…" />
   }
 
   if (scrutinsQuery.isError || !election) {
     return (
-      <div className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-8 text-sm text-rose-900 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-100">
-        <p>Élection introuvable ou liste non à jour.</p>
-        <Link to={`${ADMIN_PRIVATE_PATH}/scrutins`} className="mt-4 inline-block font-medium text-blue-600 dark:text-blue-400">
-          Retour aux élections
-        </Link>
-      </div>
+      <ErrorState
+        action={
+          <AdminButtonLink to={`${ADMIN_PRIVATE_PATH}/scrutins`} size="sm">
+            Retour aux élections
+          </AdminButtonLink>
+        }
+      >
+        Élection introuvable ou liste non à jour.
+      </ErrorState>
     )
   }
 
-  return (
-    <div className="max-w-full pb-12 overflow-x-hidden">
-      <div className="space-y-6 md:space-y-10">
-        <header className="border-b border-slate-200/80 pb-6 dark:border-white/[0.07] md:pb-8">
-        <Link
-          to={`${ADMIN_PRIVATE_PATH}/scrutins`}
-          className="mb-4 inline-flex items-center gap-2 text-[10px] font-medium uppercase tracking-widest text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-        >
-          <ArrowLeft className="size-3" strokeWidth={2} />
-          Retour
-        </Link>
-        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-          <div className="flex-1 space-y-4">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.22em] text-blue-600 dark:text-blue-400">Détails de l'élection</p>
-              <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 dark:text-white md:text-4xl">
-                {election.title}
-              </h1>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ring-1 ${statusBadgeClass(election.status)}`}
-                >
-                  {electionStatusLabelFr(election.status)}
-                </span>
-                {election.resultsPublishedAt && (
-                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600 ring-1 ring-slate-200 dark:bg-white/5 dark:text-slate-400 dark:ring-white/10">
-                    Résultats publiés
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2 md:gap-3">
-            {canWrite && (
-              <button
-                type="button"
-                onClick={() => setEditing((v) => !v)}
-                className="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 shadow-sm transition hover:bg-slate-50 active:scale-95 dark:border-white/[0.1] dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08] md:h-10 md:px-5"
-              >
-                <Pencil className="size-3.5" strokeWidth={1.5} />
-                {editing ? 'Fermer' : 'Modifier'}
-              </button>
-            )}
-            {canWrite && (
-              <button
-                type="button"
-                onClick={onArchive}
-                disabled={archiveMutation.isPending}
-                className="inline-flex h-9 items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 text-xs font-bold text-rose-800 transition hover:bg-rose-100 active:scale-95 disabled:opacity-60 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-100 dark:hover:bg-rose-500/20 md:h-10 md:px-5"
-              >
-                <Archive className="size-3.5" strokeWidth={1.5} />
-                Archiver
-              </button>
-            )}
-            {canPublishNow && (
-              <button
-                type="button"
-                onClick={onPublish}
-                disabled={publishMutation.isPending}
-                className="inline-flex h-9 items-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 active:scale-95 disabled:opacity-60 md:h-10 md:px-5"
-              >
-                <Megaphone className="size-3.5" strokeWidth={1.5} />
-                Publier
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
+  const participation = participationQuery.data
+  const rate = participation ? Number(participation.participationRate) || 0 : 0
+  const sortedResults = resultsQuery.data ? [...resultsQuery.data.results].sort((a, b) => b.votes - a.votes) : []
 
-      {editing && canWrite ? (
-        <form
-          onSubmit={onSaveElection}
-          className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-200/50 dark:border-white/[0.08] dark:bg-night-900 dark:shadow-none md:rounded-3xl md:p-10"
-        >
-          <div className="space-y-6 md:space-y-8">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div className="space-y-2.5">
-                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Titre</label>
-                <input
-                  required
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-900"
-                />
-              </div>
-              <div className="space-y-2.5">
-                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Statut</label>
+  return (
+    <div className="pb-12">
+      <PageHeader
+        back={{ to: `${ADMIN_PRIVATE_PATH}/scrutins`, label: 'Élections' }}
+        title={election.title}
+        meta={
+          <>
+            <StatusBadge status={election.status} />
+            {election.resultsPublishedAt && (
+              <Badge tone="success" icon={Megaphone}>
+                Résultats publiés
+              </Badge>
+            )}
+            <span className="inline-flex items-center gap-1.5">
+              <CalendarClock className="size-4 text-slate-400" strokeWidth={1.75} />
+              {formatDateTime(election.startsAt)} → {formatDateTime(election.endsAt)}
+            </span>
+          </>
+        }
+        actions={
+          <>
+            {canPublishNow && (
+              <AdminButton variant="primary" icon={Megaphone} onClick={onPublish} loading={publishMutation.isPending}>
+                Publier les résultats
+              </AdminButton>
+            )}
+            {canWrite && (
+              <AdminButton icon={editing ? X : Pencil} onClick={() => setEditing((v) => !v)}>
+                {editing ? 'Fermer' : 'Modifier'}
+              </AdminButton>
+            )}
+            {canWrite && (
+              <AdminButton variant="danger" icon={Archive} onClick={onArchive} disabled={archiveMutation.isPending}>
+                Archiver
+              </AdminButton>
+            )}
+          </>
+        }
+      />
+
+      {editing && canWrite && (
+        <Panel title="Modifier l'élection" icon={Pencil} className="mb-6">
+          <form onSubmit={onSaveElection} className="space-y-5">
+            <div className="grid gap-5 md:grid-cols-2">
+              <Field label="Titre" htmlFor="ed-title" required>
+                <input id="ed-title" required value={title} onChange={(e) => setTitle(e.target.value)} className={adminInput} />
+              </Field>
+              <Field label="Statut" htmlFor="ed-status">
                 <select
+                  id="ed-status"
                   value={status}
                   onChange={(e) => setStatus(e.target.value as ScrutinStatus)}
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-3 text-base font-medium outline-none focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-900"
+                  className={adminSelect}
                 >
                   <option value="DRAFT">Brouillon</option>
                   <option value="SCHEDULED">Planifié</option>
@@ -346,314 +317,265 @@ export function AdminElectionDetailPage() {
                   <option value="CLOSED">Clôturé</option>
                   <option value="ARCHIVED">Archivé</option>
                 </select>
-              </div>
+              </Field>
             </div>
-
-            <div className="space-y-2.5">
-              <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Description</label>
-              <textarea
-                rows={3}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white p-4 text-base font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-900"
-              />
+            <Field label="Description" htmlFor="ed-desc">
+              <textarea id="ed-desc" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className={adminTextarea} />
+            </Field>
+            <div className="grid gap-5 md:grid-cols-2">
+              <Field label="Début" htmlFor="ed-start" required>
+                <input id="ed-start" type="datetime-local" required value={startsAt} onChange={(e) => setStartsAt(e.target.value)} className={adminInput} />
+              </Field>
+              <Field label="Fin" htmlFor="ed-end" required>
+                <input id="ed-end" type="datetime-local" required value={endsAt} onChange={(e) => setEndsAt(e.target.value)} className={adminInput} />
+              </Field>
             </div>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div className="space-y-2.5">
-                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Début</label>
-                <input
-                  type="datetime-local"
-                  required
-                  value={startsAt}
-                  onChange={(e) => setStartsAt(e.target.value)}
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-900"
-                />
-              </div>
-              <div className="space-y-2.5">
-                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Fin</label>
-                <input
-                  type="datetime-local"
-                  required
-                  value={endsAt}
-                  onChange={(e) => setEndsAt(e.target.value)}
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-900"
-                />
-              </div>
-            </div>
-
-            {formError && (
-              <div className="rounded-xl bg-rose-50 p-3 text-xs font-bold text-rose-600 ring-1 ring-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:ring-rose-500/20">
-                {formError}
-              </div>
-            )}
-
-            <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={() => setEditing(false)}
-                className="h-11 rounded-xl bg-slate-100 px-8 text-sm font-bold text-slate-700 transition hover:bg-slate-200 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 md:h-12 md:rounded-2xl"
-              >
+            {formError && <FormError>{formError}</FormError>}
+            <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end dark:border-white/[0.06]">
+              <AdminButton variant="ghost" onClick={() => setEditing(false)}>
                 Annuler
-              </button>
-              <button
-                type="submit"
-                disabled={updateMutation.isPending}
-                className="h-11 rounded-xl bg-blue-600 px-8 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 active:scale-95 disabled:opacity-50 md:h-12 md:rounded-2xl"
-              >
-                {updateMutation.isPending ? 'Enregistrement...' : 'Sauvegarder'}
-              </button>
+              </AdminButton>
+              <AdminButton type="submit" variant="primary" loading={updateMutation.isPending}>
+                {updateMutation.isPending ? 'Enregistrement…' : 'Enregistrer'}
+              </AdminButton>
             </div>
-          </div>
-        </form>
-      ) : (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-night-900 md:rounded-3xl md:p-10">
-          <h2 className="mb-4 text-lg font-bold tracking-tight text-slate-950 dark:text-white md:mb-6 md:text-xl">À propos de l'élection</h2>
-          <div className="prose prose-slate max-w-none dark:prose-invert">
-            {election.description ? (
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600 dark:text-slate-400 md:text-base">{election.description}</p>
-            ) : (
-              <p className="text-sm italic text-slate-400 md:text-base">Aucune description fournie pour cette élection.</p>
-            )}
-          </div>
-        </div>
+          </form>
+        </Panel>
       )}
 
-      {/* Participation */}
-      <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-white/[0.07] dark:bg-white/[0.02] dark:shadow-none md:rounded-2xl md:p-8">
-        <div className="mb-6 flex items-center gap-3">
-          <div className="rounded-lg bg-blue-600/10 p-2 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400">
-            <Users className="size-5" strokeWidth={1.5} />
-          </div>
-          <h2 className="text-lg font-bold tracking-tight text-slate-950 dark:text-white">Participation</h2>
-        </div>
-        {participationQuery.isLoading ? (
-          <div className="flex h-20 items-center justify-center">
-            <Loader2 className="size-6 animate-spin text-blue-600" />
-          </div>
-        ) : participationQuery.isError ? (
-          <p className="text-xs text-rose-600 dark:text-rose-300 md:text-sm">Impossible de charger les statistiques.</p>
-        ) : participationQuery.data ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard label="Éligibles" value={participationQuery.data.eligibleStudents} />
-            <StatCard label="Participants" value={participationQuery.data.participants} />
-            <StatCard label="Ont voté" value={participationQuery.data.voters} />
-            <StatCard label="Taux" value={`${participationQuery.data.participationRate} %`} />
-          </div>
-        ) : null}
-      </section>
-
-      {/* Résultats agrégés */}
-      {resultsAllowed && (
-        <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-white/[0.07] dark:bg-white/[0.02] dark:shadow-none md:rounded-2xl md:p-8">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="rounded-lg bg-blue-600/10 p-2 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400">
-              <PieChart className="size-5" strokeWidth={1.5} />
-            </div>
-            <h2 className="text-lg font-bold tracking-tight text-slate-950 dark:text-white">Résultats agrégés</h2>
-          </div>
-          {resultsQuery.isLoading ? (
-            <div className="flex h-20 items-center justify-center">
-              <Loader2 className="size-6 animate-spin text-blue-600" />
-            </div>
-          ) : resultsQuery.isError ? (
-            <p className="text-xs text-rose-600 dark:text-rose-300 md:text-sm">
-              {resultsQuery.error ? getAdminErrorMessage(resultsQuery.error, 'Résultats indisponibles.') : 'Erreur.'}
-            </p>
-          ) : resultsQuery.data ? (
-            <div className="w-full">
-              <p className="mb-6 inline-flex items-center rounded-lg bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600 ring-1 ring-slate-200 dark:bg-white/5 dark:text-slate-400 dark:ring-white/10">
-                Total : {resultsQuery.data.totalVotes} bulletins
-              </p>
-              <div className="overflow-x-auto scrollbar-hide">
-                <table className="w-full min-w-[320px] text-left text-xs md:text-sm">
+      <div className="grid items-start gap-6 xl:grid-cols-3">
+        {/* Colonne principale */}
+        <div className="space-y-6 xl:col-span-2">
+          <Panel
+            title="Listes candidates"
+            description={`${activeLists.length} liste${activeLists.length > 1 ? 's' : ''} active${activeLists.length > 1 ? 's' : ''}`}
+            icon={ListChecks}
+            bodyClassName={activeLists.length ? '!py-0' : ''}
+            actions={
+              canListWrite && (
+                <AdminButtonLink to={`${ADMIN_PRIVATE_PATH}/scrutins/${id}/listes/nouveau`} variant="primary" size="sm" icon={Plus}>
+                  Nouvelle liste
+                </AdminButtonLink>
+              )
+            }
+            footer={
+              activeLists.length > CANDIDATE_LIST_PAGE_SIZE ? (
+                <Pagination
+                  page={candidateListPage}
+                  totalPages={totalCandidateListPages}
+                  onChange={(p) => setCandidateListPage(Math.min(totalCandidateListPages, Math.max(1, p)))}
+                  from={(candidateListPage - 1) * CANDIDATE_LIST_PAGE_SIZE + 1}
+                  to={Math.min(candidateListPage * CANDIDATE_LIST_PAGE_SIZE, activeLists.length)}
+                  total={activeLists.length}
+                  unit="listes"
+                />
+              ) : undefined
+            }
+          >
+            {listsQuery.isLoading ? (
+              <LoadingState compact />
+            ) : listsQuery.isError ? (
+              <ErrorState>Liste indisponible.</ErrorState>
+            ) : activeLists.length === 0 ? (
+              <EmptyState
+                icon={ListChecks}
+                title="Aucune liste candidate"
+                description="Ajoutez les listes qui seront proposées aux étudiants."
+                action={
+                  canListWrite && (
+                    <AdminButtonLink to={`${ADMIN_PRIVATE_PATH}/scrutins/${id}/listes/nouveau`} icon={Plus} size="sm">
+                      Ajouter une liste
+                    </AdminButtonLink>
+                  )
+                }
+              />
+            ) : (
+              <div className={tableWrap}>
+                <table className={table}>
                   <thead>
-                    <tr className="border-b border-slate-200 text-[10px] uppercase tracking-widest text-slate-400 dark:border-white/[0.07]">
-                      <th className="pb-4 font-bold">Liste</th>
-                      <th className="pb-4 font-bold">Voix</th>
-                      <th className="pb-4 font-bold">%</th>
+                    <tr>
+                      <th className={`${th} w-12`}>N°</th>
+                      <th className={th}>Liste</th>
+                      <th className={th}>Médias</th>
+                      {canListWrite ? <th className={`${th} w-24 text-right`}>Actions</th> : null}
                     </tr>
                   </thead>
                   <tbody>
-                    {resultsQuery.data.results.map((row) => (
-                      <tr key={row.candidateListId} className="border-b border-slate-50 transition hover:bg-slate-50/50 dark:border-white/[0.02] dark:hover:bg-white/[0.02]">
-                        <td className="py-4 font-bold text-slate-900 dark:text-slate-100">{row.name}</td>
-                        <td className="py-4 font-mono tabular-nums text-slate-600 dark:text-slate-400">{row.votes}</td>
-                        <td className="py-4 font-mono tabular-nums font-bold text-blue-600 dark:text-blue-400">{row.percentage}</td>
+                    {paginatedCandidateLists.map((row) => (
+                      <tr key={row.id} className={tr}>
+                        <td className={td}>
+                          <span className="flex size-7 items-center justify-center rounded-md bg-slate-100 text-[13px] font-medium tabular-nums text-slate-600 dark:bg-white/[0.05] dark:text-slate-300">
+                            {row.order}
+                          </span>
+                        </td>
+                        <td className={td}>
+                          <div className="flex items-center gap-3">
+                            <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-100 dark:bg-white/[0.05]">
+                              {row.imageUrl ? (
+                                <img src={row.imageUrl} alt="" className="h-full w-full object-cover" />
+                              ) : (
+                                <Users className="size-4 text-slate-400" strokeWidth={1.75} />
+                              )}
+                            </span>
+                            <div className="min-w-0">
+                              <p className="truncate font-medium text-slate-950 dark:text-white">{row.name}</p>
+                              {row.slogan && <p className="truncate text-[13px] text-slate-500">« {row.slogan} »</p>}
+                              {row.members && row.members.length > 0 && (
+                                <p className="mt-0.5 truncate text-[13px] text-slate-400">
+                                  {row.members.length} membre{row.members.length > 1 ? 's' : ''} ·{' '}
+                                  {row.members
+                                    .slice(0, 3)
+                                    .map((m) => m.name)
+                                    .join(', ')}
+                                  {row.members.length > 3 ? '…' : ''}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className={td}>
+                          <div className="flex flex-wrap gap-1.5">
+                            {row.videoUrl && (
+                              <Badge tone="success" icon={Video}>
+                                Vidéo
+                              </Badge>
+                            )}
+                            {row.imageUrl && (
+                              <Badge tone="brand" icon={ImageIcon}>
+                                Image
+                              </Badge>
+                            )}
+                            {!row.videoUrl && !row.imageUrl && <span className="text-[13px] text-slate-400">—</span>}
+                          </div>
+                        </td>
+                        {canListWrite ? (
+                          <td className={`${td} text-right`}>
+                            <div className="flex items-center justify-end gap-0.5">
+                              <IconLink
+                                to={`${ADMIN_PRIVATE_PATH}/scrutins/${id}/listes/${row.id}/modifier`}
+                                label="Modifier la liste"
+                                icon={Pencil}
+                              />
+                              <IconButton
+                                label="Supprimer la liste"
+                                icon={Trash2}
+                                tone="danger"
+                                onClick={() => onDeactivateList(row.id)}
+                                disabled={deactivateListMutation.isPending}
+                              />
+                            </div>
+                          </td>
+                        ) : null}
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            </div>
-          ) : null}
-        </section>
-      )}
+            )}
+          </Panel>
 
-      {/* Listes candidates */}
-      <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-white/[0.07] dark:bg-white/[0.02] dark:shadow-none md:rounded-2xl md:p-8">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-blue-600/10 p-2 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400">
-              <BarChart3 className="size-5" strokeWidth={1.5} />
-            </div>
-            <h2 className="text-lg font-bold tracking-tight text-slate-950 dark:text-white">Listes candidates</h2>
-          </div>
-          {canListWrite && (
-            <Link
-              to={`${ADMIN_PRIVATE_PATH}/scrutins/${id}/listes/nouveau`}
-              className="inline-flex h-9 items-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 active:scale-95 md:h-10 md:px-5"
+          {resultsAllowed && (
+            <Panel
+              title="Résultats"
+              icon={PieChart}
+              delay={0.05}
+              description={resultsQuery.data ? `${formatNumber(resultsQuery.data.totalVotes)} bulletins dépouillés` : undefined}
             >
-              <Plus className="size-3.5" />
-              Nouvelle liste
-            </Link>
+              {resultsQuery.isLoading ? (
+                <LoadingState compact />
+              ) : resultsQuery.isError ? (
+                <ErrorState>
+                  {resultsQuery.error ? getAdminErrorMessage(resultsQuery.error, 'Résultats indisponibles.') : 'Erreur.'}
+                </ErrorState>
+              ) : sortedResults.length ? (
+                <ol className="space-y-5">
+                  {sortedResults.map((row, i) => (
+                    <li key={row.candidateListId}>
+                      <div className="mb-2 flex items-center justify-between gap-4 text-[15px]">
+                        <span className="flex min-w-0 items-center gap-2.5">
+                          {i === 0 ? (
+                            <Trophy className="size-4 shrink-0 text-amber-500" strokeWidth={1.75} />
+                          ) : (
+                            <span className="w-4 shrink-0 text-center text-[13px] tabular-nums text-slate-400">{i + 1}</span>
+                          )}
+                          <span className="truncate font-medium text-slate-900 dark:text-white">{row.name}</span>
+                        </span>
+                        <span className="shrink-0 tabular-nums text-slate-500">
+                          {formatNumber(row.votes)} voix ·{' '}
+                          <span className="font-semibold text-slate-950 dark:text-white">{formatNumber(row.percentage, 1)} %</span>
+                        </span>
+                      </div>
+                      <ProgressBar value={row.percentage} tone={i === 0 ? 'brand' : 'slate'} delay={0.1 + i * 0.05} />
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <EmptyState icon={PieChart} title="Aucun vote enregistré" />
+              )}
+            </Panel>
           )}
         </div>
 
-        {listsQuery.isLoading ? (
-          <div className="flex h-20 items-center justify-center">
-            <Loader2 className="size-6 animate-spin text-blue-600" />
-          </div>
-        ) : listsQuery.isError ? (
-          <p className="text-xs text-rose-600 md:text-sm">Liste indisponible.</p>
-        ) : (
-          <div className="space-y-10">
-            <div className="overflow-x-auto scrollbar-hide">
-              <table className="w-full min-w-[580px] text-xs md:text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200 text-[10px] uppercase tracking-widest text-slate-400 dark:border-white/[0.07]">
-                    <th className="pb-4 text-left w-10 font-bold">#</th>
-                    <th className="pb-4 text-left font-bold">Informations</th>
-                    <th className="pb-4 text-left w-20 font-bold">Média</th>
-                    <th className="pb-4 text-left w-20 font-bold">Statut</th>
-                    {canListWrite ? <th className="pb-4 text-right w-20 font-bold">Actions</th> : null}
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedCandidateLists.map((row) => (
-                    <tr
-                      key={row.id}
-                      className="group border-b border-slate-50 transition last:border-0 hover:bg-slate-50/50 dark:border-white/[0.02] dark:hover:bg-white/[0.02]"
-                    >
-                      <td className="py-5 pr-3 text-sm font-bold text-slate-400">{row.order}</td>
-                      <td className="py-5 px-3">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-sm font-bold text-slate-950 dark:text-white">
-                            {row.name}
-                          </span>
-                          {row.slogan && (
-                            <span className="text-xs italic text-slate-500">« {row.slogan} »</span>
-                          )}
-                          {row.members && row.members.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                              {row.members.map((m, i) => (
-                                <span
-                                  key={i}
-                                  className="rounded-md bg-slate-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-600 dark:bg-white/5 dark:text-slate-400"
-                                >
-                                  {m.name}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-5 px-3">
-                        <div className="flex flex-col gap-1.5">
-                          {row.videoUrl ? (
-                            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20">
-                              <Video className="size-3" />
-                              Vidéo
-                            </div>
-                          ) : null}
-                          {row.imageUrl ? (
-                            <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20">
-                              <ImageIcon className="size-3" />
-                              Image
-                            </div>
-                          ) : null}
-                          {!row.videoUrl && !row.imageUrl && (
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">
-                              Aucun
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-5 px-3">
-                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20">
-                          Active
-                        </span>
-                      </td>
-                      {canListWrite ? (
-                        <td className="py-5 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Link
-                              to={`${ADMIN_PRIVATE_PATH}/scrutins/${id}/listes/${row.id}/modifier`}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-blue-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-blue-400"
-                              title="Modifier la liste"
-                            >
-                              <Pencil className="size-3.5" strokeWidth={2} />
-                            </Link>
-                            <button
-                              type="button"
-                              onClick={() => onDeactivateList(row.id)}
-                              disabled={deactivateListMutation.isPending}
-                              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-rose-100 bg-rose-50 px-2.5 text-[10px] font-bold uppercase tracking-widest text-rose-600 transition hover:bg-rose-100 hover:text-rose-700 active:scale-95 disabled:opacity-50 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-400 dark:hover:bg-rose-500/20"
-                              title="Supprimer la liste"
-                            >
-                              {deactivateListMutation.isPending &&
-                              deactivateListMutation.variables === row.id ? (
-                                <Loader2 className="size-3.5 animate-spin" />
-                              ) : (
-                                <Trash2 className="size-3.5" strokeWidth={2} />
-                              )}
-                              <span className="hidden sm:inline">Supprimer</span>
-                            </button>
-                          </div>
-                        </td>
-                      ) : null}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {activeLists.length > CANDIDATE_LIST_PAGE_SIZE && (
-              <div className="flex flex-col gap-4 border-t border-slate-100 pt-6 dark:border-white/5 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-xs text-slate-500">
-                  Affichage{' '}
-                  <span className="font-semibold text-slate-900 dark:text-white">
-                    {(candidateListPage - 1) * CANDIDATE_LIST_PAGE_SIZE + 1}–
-                    {Math.min(candidateListPage * CANDIDATE_LIST_PAGE_SIZE, activeLists.length)}
-                  </span>{' '}
-                  sur <span className="font-semibold text-slate-900 dark:text-white">{activeLists.length}</span> listes
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCandidateListPage((p) => Math.max(1, p - 1))}
-                    disabled={candidateListPage === 1}
-                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-[10px] font-bold uppercase tracking-widest text-slate-700 transition hover:bg-slate-50 disabled:opacity-40 dark:border-white/10 dark:bg-night-950 dark:text-slate-300 dark:hover:bg-white/5"
-                  >
-                    <ChevronLeft className="size-3.5" strokeWidth={2.5} />
-                    Précédent
-                  </button>
-                  <span className="min-w-[80px] text-center text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                    Page {candidateListPage} / {totalCandidateListPages}
-                  </span>
-                  <button
-                    onClick={() => setCandidateListPage((p) => Math.min(totalCandidateListPages, p + 1))}
-                    disabled={candidateListPage === totalCandidateListPages}
-                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-[10px] font-bold uppercase tracking-widest text-slate-700 transition hover:bg-slate-50 disabled:opacity-40 dark:border-white/10 dark:bg-night-950 dark:text-slate-300 dark:hover:bg-white/5"
-                  >
-                    Suivant
-                    <ChevronRight className="size-3.5" strokeWidth={2.5} />
-                  </button>
+        {/* Colonne latérale */}
+        <div className="space-y-6">
+          <Panel title="Participation" icon={Users} delay={0.05}>
+            {participationQuery.isLoading ? (
+              <LoadingState compact />
+            ) : participationQuery.isError ? (
+              <ErrorState>Impossible de charger les statistiques.</ErrorState>
+            ) : participation ? (
+              <div>
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-[15px] text-slate-500 dark:text-slate-400">Taux de participation</p>
+                    <p className="mt-1 text-4xl font-semibold tracking-tight tabular-nums text-slate-950 dark:text-white">
+                      {formatNumber(rate, 1)}
+                      <span className="ml-0.5 text-xl text-slate-400">%</span>
+                    </p>
+                  </div>
                 </div>
+                <ProgressBar value={rate} className="mt-4 !h-2" />
+                <dl className="mt-6 grid grid-cols-3 divide-x divide-slate-100 rounded-lg border border-slate-100 dark:divide-white/[0.06] dark:border-white/[0.06]">
+                  {[
+                    { label: 'Éligibles', value: participation.eligibleStudents },
+                    { label: 'Participants', value: participation.participants },
+                    { label: 'Ont voté', value: participation.voters },
+                  ].map((s) => (
+                    <div key={s.label} className="px-3 py-3 text-center">
+                      <dd className="text-lg font-semibold tabular-nums text-slate-950 dark:text-white">{formatNumber(s.value)}</dd>
+                      <dt className="mt-0.5 text-[13px] text-slate-500">{s.label}</dt>
+                    </div>
+                  ))}
+                </dl>
               </div>
-            )}
-          </div>
-        )}
-      </section>
+            ) : null}
+          </Panel>
+
+          <Panel title="Informations" icon={FileText} delay={0.1}>
+            <p
+              className={`whitespace-pre-wrap text-[15px] leading-relaxed ${
+                election.description ? 'text-slate-600 dark:text-slate-300' : 'text-slate-400'
+              }`}
+            >
+              {election.description || 'Aucune description fournie pour cette élection.'}
+            </p>
+            <dl className="mt-5 space-y-3 border-t border-slate-100 pt-5 text-[15px] dark:border-white/[0.06]">
+              {[
+                { label: 'Début', value: formatDateTime(election.startsAt) },
+                { label: 'Fin', value: formatDateTime(election.endsAt) },
+                ...(election.resultsPublishedAt
+                  ? [{ label: 'Résultats publiés', value: formatDateTime(election.resultsPublishedAt) }]
+                  : []),
+                { label: 'Créée le', value: formatDateTime(election.createdAt) },
+              ].map((row) => (
+                <div key={row.label} className="flex items-center justify-between gap-4">
+                  <dt className="text-slate-500">{row.label}</dt>
+                  <dd className="text-right font-medium tabular-nums text-slate-900 dark:text-white">{row.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </Panel>
+        </div>
       </div>
 
       <ConfirmModal

@@ -1,14 +1,9 @@
 import { useState, useEffect } from 'react'
-import {
-  User,
-  Lock,
-  Mail,
-  Shield,
-  Loader2,
-  ArrowLeft,
-  AlertTriangle,
-} from 'lucide-react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { AlertTriangle, KeyRound, Lock, Mail, Shield, ShieldCheck } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { roleLabel, permissionLabel } from '../modules/admin-dashboard/permission-labels'
+import { AdminButton, Badge, Field, PageHeader, Panel } from '../shared/ui/admin-ui'
+import { adminInput } from '../shared/ui/admin-ui-classes'
 import { useAdminAuthStore } from '../modules/admin-dashboard/auth-store'
 import { ADMIN_PRIVATE_PATH } from '../shared/constants/routes'
 import { httpClient } from '../shared/api/http-client'
@@ -76,145 +71,113 @@ export function AdminProfilePage() {
 
   if (!admin) return null
 
+  const mismatch = confirmPassword.length > 0 && newPassword !== confirmPassword
+  const isSuper = admin.role === 'SUPER_ADMIN'
+
   return (
-    <div className="mx-auto max-w-4xl space-y-8 pb-12">
-      <header className="flex flex-col gap-4">
-        {!isForcedChange && (
-          <Link
-            to={ADMIN_PRIVATE_PATH}
-            className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-          >
-            <ArrowLeft className="size-3" strokeWidth={2} />
-            Retour au tableau de bord
-          </Link>
-        )}
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-950 dark:text-white md:text-4xl">
-            {isForcedChange ? 'Changement de mot de passe obligatoire' : 'Mon Profil'}
-          </h1>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-            {isForcedChange 
-              ? 'Pour des raisons de sécurité, vous devez modifier votre mot de passe provisoire avant de continuer.' 
-              : 'Gérez vos informations personnelles et la sécurité de votre compte.'}
-          </p>
-        </div>
-      </header>
+    <div className="pb-12">
+      <PageHeader
+        back={isForcedChange ? undefined : { to: ADMIN_PRIVATE_PATH, label: "Vue d'ensemble" }}
+        title={isForcedChange ? 'Changement de mot de passe obligatoire' : 'Mon profil'}
+        description={
+          isForcedChange
+            ? 'Pour des raisons de sécurité, vous devez modifier votre mot de passe provisoire avant de continuer.'
+            : 'Vos informations et la sécurité de votre compte.'
+        }
+      />
 
       {isForcedChange && (
-        <div className="flex items-center gap-4 rounded-3xl border border-amber-200 bg-amber-50 p-6 dark:border-amber-500/20 dark:bg-amber-500/10">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500 text-white shadow-lg shadow-amber-500/20">
-            <AlertTriangle className="size-6" strokeWidth={1.5} />
-          </div>
-          <div className="space-y-1">
-            <p className="font-bold text-amber-900 dark:text-amber-400">Première connexion détectée</p>
-            <p className="text-sm text-amber-700 dark:text-amber-500/80">
-              Votre accès au tableau de bord sera débloqué immédiatement après la mise à jour de votre mot de passe.
+        <div className="mb-6 flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] p-4">
+          <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" strokeWidth={1.75} />
+          <div>
+            <p className="text-[15px] font-medium text-amber-900 dark:text-amber-300">Première connexion</p>
+            <p className="mt-0.5 text-[15px] text-amber-800/80 dark:text-amber-400/80">
+              L’accès au tableau de bord sera débloqué dès la mise à jour de votre mot de passe.
             </p>
           </div>
         </div>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-3">
-        {/* Informations générales */}
-        <div className="lg:col-span-1">
-          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/[0.07] dark:bg-night-900/60">
-            <div className="flex flex-col items-center text-center">
-              <div className="flex size-20 items-center justify-center rounded-2xl bg-blue-600/10 text-blue-600 ring-1 ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20">
-                <User className="size-10" strokeWidth={1.25} />
-              </div>
-              <h2 className="mt-4 font-bold text-slate-950 dark:text-white">{admin.email}</h2>
-              <div className="mt-2 flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:bg-white/5 dark:text-slate-400">
-                <Shield className="size-3" />
-                {admin.role === 'SUPER_ADMIN' ? 'Super Administrateur' : 'Administrateur'}
-              </div>
-            </div>
-
-            <div className="mt-8 space-y-4">
-              <div className="flex items-center gap-3 text-sm">
-                <Mail className="size-4 text-slate-400" />
-                <span className="text-slate-600 dark:text-slate-400">{admin.email}</span>
-              </div>
-            </div>
+      <div className="grid items-start gap-6 lg:grid-cols-3">
+        <Panel>
+          <div className="flex flex-col items-center py-2 text-center">
+            <span className="flex size-16 items-center justify-center rounded-full bg-brand-600 text-xl font-semibold text-white">
+              {admin.email.slice(0, 2).toUpperCase()}
+            </span>
+            <p className="mt-4 max-w-full truncate font-medium text-slate-950 dark:text-white">{admin.email}</p>
+            <Badge tone={isSuper ? 'warning' : 'brand'} icon={isSuper ? ShieldCheck : Shield} className="mt-2">
+              {roleLabel(admin.role)}
+            </Badge>
           </div>
-        </div>
-
-        {/* Modification du mot de passe */}
-        <div className="lg:col-span-2">
-          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-white/[0.07] dark:bg-night-900/60">
-            <div className="border-b border-slate-100 p-6 dark:border-white/[0.07]">
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 ring-1 ring-amber-500/20 dark:bg-amber-500/20 dark:text-amber-400">
-                  <Lock className="size-5" strokeWidth={1.5} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-950 dark:text-white">Sécurité</h3>
-                  <p className="text-xs text-slate-500">Modifier votre mot de passe d&apos;accès</p>
-                </div>
+          <dl className="mt-6 space-y-3 border-t border-slate-100 pt-5 text-[15px] dark:border-white/[0.06]">
+            <div className="flex items-center gap-2.5 text-slate-600 dark:text-slate-400">
+              <Mail className="size-4 shrink-0 text-slate-400" strokeWidth={1.75} />
+              <span className="truncate">{admin.email}</span>
+            </div>
+          </dl>
+          {!isSuper && admin.permissions?.length > 0 && (
+            <div className="mt-5 border-t border-slate-100 pt-5 dark:border-white/[0.06]">
+              <p className="mb-2 text-[13px] font-medium text-slate-500">Permissions</p>
+              <div className="flex flex-wrap gap-1.5">
+                {admin.permissions.map((p) => (
+                  <Badge key={p}>{permissionLabel(p)}</Badge>
+                ))}
               </div>
             </div>
+          )}
+        </Panel>
 
-            <form onSubmit={handleSubmit} className="p-6">
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                    Mot de passe actuel
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 focus:bg-white dark:border-white/10 dark:bg-white/5"
-                  />
-                </div>
-
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                      Nouveau mot de passe
-                    </label>
-                    <input
-                      type="password"
-                      required
-                      minLength={8}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 focus:bg-white dark:border-white/10 dark:bg-white/5"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                      Confirmer le nouveau mot de passe
-                    </label>
-                    <input
-                      type="password"
-                      required
-                      minLength={8}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 focus:bg-white dark:border-white/10 dark:bg-white/5"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end pt-2">
-                  <button
-                    type="submit"
-                    disabled={isPending}
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-8 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 active:scale-95 disabled:opacity-50"
-                  >
-                    {isPending ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <Lock className="size-4" />
-                    )}
-                    Mettre à jour le mot de passe
-                  </button>
-                </div>
-              </div>
-            </form>
-          </section>
-        </div>
+        <Panel className="lg:col-span-2" title="Mot de passe" description="Modifiez votre mot de passe d'accès" icon={Lock} delay={0.05}>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <Field label="Mot de passe actuel" htmlFor="pw-current" required>
+              <input
+                id="pw-current"
+                type="password"
+                required
+                autoComplete="current-password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className={adminInput}
+              />
+            </Field>
+            <div className="grid gap-5 md:grid-cols-2">
+              <Field label="Nouveau mot de passe" htmlFor="pw-new" required hint="8 caractères minimum.">
+                <input
+                  id="pw-new"
+                  type="password"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className={adminInput}
+                />
+              </Field>
+              <Field
+                label="Confirmer le mot de passe"
+                htmlFor="pw-confirm"
+                required
+                hint={mismatch ? <span className="text-rose-600 dark:text-rose-400">Les mots de passe ne correspondent pas.</span> : undefined}
+              >
+                <input
+                  id="pw-confirm"
+                  type="password"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={`${adminInput} ${mismatch ? '!border-rose-400' : ''}`}
+                />
+              </Field>
+            </div>
+            <div className="flex justify-end border-t border-slate-100 pt-5 dark:border-white/[0.06]">
+              <AdminButton type="submit" variant="primary" icon={KeyRound} loading={isPending}>
+                Mettre à jour le mot de passe
+              </AdminButton>
+            </div>
+          </form>
+        </Panel>
       </div>
     </div>
   )

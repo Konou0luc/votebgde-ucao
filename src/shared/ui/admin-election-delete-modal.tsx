@@ -83,14 +83,13 @@ export function AdminElectionDeleteModal({ election, isDeleting, onClose, onConf
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-6"
+      className="fixed inset-0 z-[100] flex items-end justify-center p-4 sm:items-center sm:p-6"
       role="presentation"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget && !isDeleting) onClose()
       }}
     >
-      {/* Backdrop haut de gamme */}
-      <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-md dark:bg-black/60" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 bg-slate-950/40 backdrop-blur-sm dark:bg-black/60" aria-hidden />
 
       <div
         ref={panelRef}
@@ -98,36 +97,34 @@ export function AdminElectionDeleteModal({ election, isDeleting, onClose, onConf
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descId}
-        className="relative z-[1] w-full max-w-[440px] overflow-hidden rounded-3xl border border-white/20 bg-white/90 p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] backdrop-blur-xl dark:border-white/10 dark:bg-night-900/90 dark:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)]"
+        className="relative z-[1] w-full max-w-md overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_32px_64px_-16px_rgba(15,23,42,0.35)] dark:border-white/10 dark:bg-night-900 dark:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.7)] sm:p-7"
       >
-        <div className="flex flex-col items-center text-center">
-          {/* Icone avec aura lumineuse */}
-          <div className="relative mb-6 flex size-16 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
-            <div className="absolute inset-0 animate-pulse rounded-2xl bg-rose-500 blur-xl opacity-20" />
-            <AlertTriangle className="relative size-8" strokeWidth={1.5} />
-          </div>
 
-          <h2 id={titleId} className="text-xl font-bold tracking-tight text-slate-950 dark:text-white">
-            {step === 1 ? 'Supprimer l’élection ?' : 'Confirmation finale'}
-          </h2>
-          
-          <p id={descId} className="mt-3 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-            {step === 1 ? (
-              <>
-                L’élection « <span className="font-semibold text-slate-900 dark:text-slate-200">{election.title}</span> » sera archivée. 
-                Cette action est irréversible et impactera les votes en cours.
-              </>
-            ) : (
-              <>
-                Pour confirmer, veuillez saisir le titre exact de l’élection ci-dessous.
-              </>
-            )}
-          </p>
+        <div className="flex gap-4">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 ring-1 ring-inset ring-rose-500/20 dark:text-rose-400">
+            <AlertTriangle className="size-5" strokeWidth={1.75} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[13px] font-medium text-slate-400">Étape {step} sur 2</p>
+            <h2 id={titleId} className="mt-0.5 text-base font-semibold tracking-tight text-slate-950 dark:text-white">
+              {step === 1 ? 'Supprimer l’élection ?' : 'Confirmation finale'}
+            </h2>
+            <p id={descId} className="mt-1.5 text-[15px] leading-relaxed text-slate-500 dark:text-slate-400">
+              {step === 1 ? (
+                <>
+                  L’élection « <span className="font-medium text-slate-900 dark:text-slate-200">{election.title}</span> » sera
+                  archivée. Cette action est irréversible et impactera les votes en cours.
+                </>
+              ) : (
+                <>Pour confirmer, saisissez le titre exact de l’élection ci-dessous.</>
+              )}
+            </p>
+          </div>
         </div>
 
         {step === 2 ? (
-          <div className="mt-8 space-y-3">
-            <label htmlFor="delete-confirm-title" className="block px-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          <div className="mt-6 space-y-1.5">
+            <label htmlFor="delete-confirm-title" className="block text-[15px] font-medium text-slate-700 dark:text-slate-300">
               Titre de l&apos;élection
             </label>
             <input
@@ -139,62 +136,41 @@ export function AdminElectionDeleteModal({ election, isDeleting, onClose, onConf
               onChange={(e) => setConfirmInput(e.target.value)}
               placeholder={election.title}
               disabled={isDeleting}
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-white/50 px-4 text-sm font-medium outline-none transition focus:border-rose-500 focus:bg-white dark:border-white/10 dark:bg-white/[0.02]"
+              className="tt-field-outline h-10 w-full rounded-lg px-3 focus:!border-rose-500 focus:!ring-rose-500/15"
             />
-            {!titleMatches && confirmInput.length > 0 && (
-              <p className="px-1 text-[10px] font-bold text-rose-500">Le titre ne correspond pas.</p>
-            )}
+            {!titleMatches && confirmInput.length > 0 && <p className="text-[13px] text-rose-600 dark:text-rose-400">Le titre ne correspond pas.</p>}
           </div>
         ) : null}
 
-        <div className="mt-10 flex flex-col gap-3">
+        <div className="mt-7 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            ref={firstBtnRef}
+            onClick={() => !isDeleting && (step === 1 ? onClose() : setStep(1))}
+            className="h-10 rounded-full px-5 text-[15px] font-medium text-slate-700 ring-1 ring-inset ring-slate-200 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:text-slate-200 dark:ring-white/10 dark:hover:bg-white/5"
+            disabled={isDeleting}
+          >
+            {step === 1 ? 'Annuler' : 'Retour'}
+          </button>
           {step === 1 ? (
-            <>
-              <button
-                type="button"
-                onClick={() => setStep(2)}
-                className="flex h-12 w-full items-center justify-center rounded-2xl bg-rose-600 text-sm font-bold text-white shadow-lg shadow-rose-600/25 transition-all hover:bg-rose-700 active:scale-[0.98]"
-                disabled={isDeleting}
-              >
-                Continuer la suppression
-              </button>
-              <button
-                type="button"
-                ref={firstBtnRef}
-                onClick={() => !isDeleting && onClose()}
-                className="flex h-12 w-full items-center justify-center rounded-2xl bg-slate-100 text-sm font-bold text-slate-600 transition-all hover:bg-slate-200 active:scale-[0.98] dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"
-                disabled={isDeleting}
-              >
-                Annuler
-              </button>
-            </>
+            <button
+              type="button"
+              onClick={() => setStep(2)}
+              className="h-10 rounded-full bg-rose-600 px-5 text-[15px] font-medium text-white transition-colors hover:bg-rose-500 disabled:opacity-50"
+              disabled={isDeleting}
+            >
+              Continuer
+            </button>
           ) : (
-            <>
-              <button
-                type="button"
-                onClick={() => void handleFinalDelete()}
-                disabled={!titleMatches || isDeleting}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-rose-600 text-sm font-bold text-white shadow-lg shadow-rose-600/25 transition-all hover:bg-rose-700 active:scale-[0.98] disabled:opacity-50 disabled:shadow-none"
-              >
-                {isDeleting ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" />
-                    Suppression…
-                  </>
-                ) : (
-                  'Confirmer la suppression'
-                )}
-              </button>
-              <button
-                type="button"
-                ref={firstBtnRef}
-                onClick={() => !isDeleting && setStep(1)}
-                className="flex h-12 w-full items-center justify-center rounded-2xl bg-slate-100 text-sm font-bold text-slate-600 transition-all hover:bg-slate-200 active:scale-[0.98] dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"
-                disabled={isDeleting}
-              >
-                Retour
-              </button>
-            </>
+            <button
+              type="button"
+              onClick={() => void handleFinalDelete()}
+              disabled={!titleMatches || isDeleting}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-rose-600 px-5 text-[15px] font-medium text-white transition-colors hover:bg-rose-500 disabled:opacity-50"
+            >
+              {isDeleting && <Loader2 className="size-4 animate-spin" />}
+              {isDeleting ? 'Suppression…' : 'Confirmer la suppression'}
+            </button>
           )}
         </div>
       </div>

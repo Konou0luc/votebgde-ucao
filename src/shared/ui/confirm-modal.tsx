@@ -68,12 +68,6 @@ export function ConfirmModal({
             transition={{ type: 'spring', damping: 30, stiffness: 420 }}
             className="relative w-full max-w-md overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_32px_64px_-16px_rgba(15,23,42,0.35)] dark:border-white/10 dark:bg-night-900 dark:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.7)] sm:p-7"
           >
-            <div
-              aria-hidden
-              className={`pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent ${
-                danger ? 'via-rose-500/60' : 'via-aqua-400/60'
-              } to-transparent`}
-            />
             <button
               type="button"
               onClick={onCancel}
@@ -127,7 +121,7 @@ export function ConfirmModal({
                 className={`inline-flex h-10 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium text-white transition-[background-color,box-shadow] active:scale-[0.98] disabled:opacity-70 ${
                   danger
                     ? 'bg-rose-600 hover:bg-rose-500 hover:shadow-[0_8px_24px_-8px_rgba(225,29,72,0.6)]'
-                    : 'bg-brand-600 hover:bg-brand-500 hover:shadow-[0_8px_24px_-8px_rgba(58,79,224,0.6)]'
+                    : 'bg-brand-600 hover:bg-brand-700'
                 }`}
               >
                 {isLoading && <Loader2 className="size-4 animate-spin" />}

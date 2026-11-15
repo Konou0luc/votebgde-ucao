@@ -1,35 +1,15 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import {
-  Loader2,
-  Shield,
-  Mail,
-  Check,
-  ShieldCheck,
-  ArrowLeft,
-  Save,
-  UserPlus,
-} from 'lucide-react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { Check, KeyRound, Mail, Save, Shield, ShieldAlert, ShieldCheck, UserPlus } from 'lucide-react'
 import { useAdminAuthStore } from '../modules/admin-dashboard/auth-store'
 import { useToastStore } from '../shared/ui/toast-store'
-import {
-  useAdminUsersQuery,
-  useCreateAdminMutation,
-  useUpdateAdminMutation,
-} from '../modules/admin-dashboard/hooks'
+import { useAdminUsersQuery, useCreateAdminMutation, useUpdateAdminMutation } from '../modules/admin-dashboard/hooks'
 import { getAdminErrorMessage } from '../modules/admin-dashboard/api'
+import { ALL_PERMISSIONS } from '../modules/admin-dashboard/permission-labels'
 import { ADMIN_PRIVATE_PATH } from '../shared/constants/routes'
 import type { AdminRole } from '../modules/admin-dashboard/types'
-
-const ALL_PERMISSIONS = [
-  { id: 'scrutin:read', label: 'Voir les votes' },
-  { id: 'scrutin:write', label: 'Gérer les votes' },
-  { id: 'candidate-list:read', label: 'Voir Listes' },
-  { id: 'candidate-list:write', label: 'Gérer Listes' },
-  { id: 'results:publish', label: 'Publier Résultats' },
-  { id: 'dashboard:read', label: 'Voir Dashboard' },
-  { id: 'audit:read', label: 'Voir Audit' },
-]
+import { AdminButton, AdminButtonLink, EmptyState, Field, LoadingState, PageHeader, Panel } from '../shared/ui/admin-ui'
+import { adminInput } from '../shared/ui/admin-ui-classes'
 
 export function AdminUserEditPage() {
   const { userId } = useParams<{ userId?: string }>()
@@ -66,11 +46,14 @@ export function AdminUserEditPage() {
 
   if (admin?.role !== 'SUPER_ADMIN') {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center p-8 text-center">
-        <Shield className="size-12 text-rose-600 mb-4" />
-        <h1 className="text-2xl font-bold">Accès Restreint</h1>
-        <Link to={ADMIN_PRIVATE_PATH} className="mt-4 text-blue-600">Retour</Link>
-      </div>
+      <Panel>
+        <EmptyState
+          icon={ShieldAlert}
+          title="Accès restreint"
+          description="Seuls les super administrateurs peuvent gérer les comptes."
+          action={<AdminButtonLink to={ADMIN_PRIVATE_PATH}>Retour</AdminButtonLink>}
+        />
+      </Panel>
     )
   }
 
@@ -118,167 +101,159 @@ export function AdminUserEditPage() {
   }
 
   if (isEditMode && usersQuery.isLoading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="size-8 animate-spin text-blue-600" />
-      </div>
-    )
+    return <LoadingState />
   }
 
-  return (
-    <div className="mx-auto max-w-4xl pb-24 pt-12">
-      <header className="mb-12 space-y-4">
-        <Link
-          to={`${ADMIN_PRIVATE_PATH}/utilisateurs`}
-          className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-        >
-          <ArrowLeft className="size-3" strokeWidth={2.5} />
-          Retour aux utilisateurs
-        </Link>
-        <div className="space-y-1">
-          <h1 className="text-4xl font-bold tracking-tighter text-slate-950 dark:text-white">
-            {isEditMode ? 'Modifier l\'Admin' : 'Nouvel Administrateur'}
-          </h1>
-          <p className="text-slate-500">
-            {isEditMode ? `Modification du compte ${formData.email}` : 'Créez un nouveau compte avec des accès spécifiques.'}
-          </p>
-        </div>
-      </header>
+  const isSuper = formData.role === 'SUPER_ADMIN'
+  const saving = createMutation.isPending || updateMutation.isPending
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="rounded-3xl border border-slate-200 bg-white p-8 dark:border-white/[0.08] dark:bg-night-900">
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            <div className="space-y-2.5">
-              <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Email</label>
+  return (
+    <div className="mx-auto max-w-3xl pb-12">
+      <PageHeader
+        back={{ to: `${ADMIN_PRIVATE_PATH}/utilisateurs`, label: 'Utilisateurs' }}
+        title={isEditMode ? "Modifier l'administrateur" : 'Nouvel administrateur'}
+        description={isEditMode ? `Compte ${formData.email}` : 'Créez un compte avec des accès adaptés à son rôle.'}
+      />
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <Panel title="Identifiants" icon={KeyRound}>
+          <div className="grid gap-5 md:grid-cols-2">
+            <Field label="E-mail" htmlFor="u-email" required>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" strokeWidth={1.75} />
                 <input
+                  id="u-email"
                   type="email"
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950"
+                  className={`${adminInput} pl-9`}
                   placeholder="admin@example.com"
+                  autoComplete="off"
                 />
               </div>
-            </div>
-            <div className="space-y-2.5">
-              <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                Mot de passe {isEditMode && '(Optionnel)'}
-              </label>
+            </Field>
+            <Field
+              label="Mot de passe"
+              htmlFor="u-password"
+              required={!isEditMode}
+              hint={isEditMode ? 'Laissez vide pour conserver le mot de passe actuel.' : undefined}
+            >
               <input
+                id="u-password"
                 type="password"
                 required={!isEditMode}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950"
+                className={adminInput}
                 placeholder="••••••••"
+                autoComplete="new-password"
               />
-            </div>
+            </Field>
           </div>
+        </Panel>
 
-          <div className="mt-8 space-y-4">
-            <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Rôle Principal</label>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {(['STANDARD_ADMIN', 'SUPER_ADMIN'] as const).map((role) => (
-                <button
-                  key={role}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, role: role as AdminRole })}
-                  className={`flex items-center gap-4 rounded-2xl border p-5 transition text-left ${
-                    formData.role === role
-                      ? 'border-blue-500 bg-blue-50/50 text-blue-600 dark:bg-blue-500/10'
-                      : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200 dark:border-white/5 dark:bg-white/[0.04]'
-                  }`}
-                >
-                  <div className={`rounded-xl p-2 ${formData.role === role ? 'bg-blue-600 text-white' : 'bg-white dark:bg-night-950'}`}>
-                    {role === 'SUPER_ADMIN' ? <ShieldCheck className="size-5" /> : <Shield className="size-5" />}
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-widest">{role.replace('_', ' ')}</p>
-                    <p className="text-[10px] opacity-70">
-                      {role === 'SUPER_ADMIN' ? 'Accès total sans restrictions' : 'Accès limité aux permissions choisies'}
-                    </p>
-                  </div>
-                </button>
-              ))}
+        <Panel title="Rôle et permissions" icon={Shield} delay={0.05}>
+          <fieldset>
+            <legend className="mb-3 text-[15px] font-medium text-slate-700 dark:text-slate-300">Rôle</legend>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {(['STANDARD_ADMIN', 'SUPER_ADMIN'] as const).map((role) => {
+                const selected = formData.role === role
+                return (
+                  <button
+                    key={role}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => setFormData({ ...formData, role: role as AdminRole })}
+                    className={`flex items-start gap-3 rounded-lg border p-4 text-left transition-[border-color,box-shadow,background-color] ${
+                      selected
+                        ? 'border-brand-500 bg-brand-500/[0.04] ring-4 ring-brand-500/10 dark:border-brand-400 dark:ring-brand-400/15'
+                        : 'border-slate-200 hover:border-slate-300 dark:border-white/10 dark:hover:border-white/20'
+                    }`}
+                  >
+                    <span
+                      className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${
+                        selected ? 'bg-brand-600 text-white dark:bg-brand-500' : 'bg-slate-100 text-slate-500 dark:bg-white/[0.06]'
+                      }`}
+                    >
+                      {role === 'SUPER_ADMIN' ? <ShieldCheck className="size-4" /> : <Shield className="size-4" />}
+                    </span>
+                    <span>
+                      <span className="block text-[15px] font-medium text-slate-950 dark:text-white">
+                        {role === 'SUPER_ADMIN' ? 'Super admin' : 'Administrateur'}
+                      </span>
+                      <span className="mt-0.5 block text-[13px] text-slate-500">
+                        {role === 'SUPER_ADMIN' ? 'Accès total, gestion des comptes et de l’audit.' : 'Accès limité aux permissions choisies.'}
+                      </span>
+                    </span>
+                  </button>
+                )
+              })}
             </div>
-          </div>
+          </fieldset>
 
-          <div className="mt-12 space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 dark:text-white">Permissions Détaillées</h3>
-              {formData.role === 'SUPER_ADMIN' && (
-                <span className="rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
-                  Toutes les permissions incluses
-                </span>
-              )}
+          <fieldset className="mt-6 border-t border-slate-100 pt-6 dark:border-white/[0.06]">
+            <div className="mb-3 flex items-center justify-between">
+              <legend className="text-[15px] font-medium text-slate-700 dark:text-slate-300">Permissions</legend>
+              {isSuper && <span className="text-[13px] text-amber-600 dark:text-amber-400">Toutes incluses pour un super admin</span>}
             </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {ALL_PERMISSIONS.map((perm) => (
-                <button
-                  key={perm.id}
-                  type="button"
-                  disabled={formData.role === 'SUPER_ADMIN'}
-                  onClick={() => togglePermission(perm.id)}
-                  className={`flex items-center justify-between rounded-2xl border px-5 py-4 transition ${
-                    formData.permissions.includes(perm.id) || formData.role === 'SUPER_ADMIN'
-                      ? 'border-emerald-500/30 bg-emerald-50/50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
-                      : 'border-slate-100 bg-slate-50 text-slate-500 dark:border-white/5 dark:bg-white/[0.04] hover:border-slate-200'
-                  } ${formData.role === 'SUPER_ADMIN' ? 'opacity-60 cursor-not-allowed' : ''}`}
-                >
-                  <span className="text-xs font-bold">{perm.label}</span>
-                  {(formData.permissions.includes(perm.id) || formData.role === 'SUPER_ADMIN') ? (
-                    <div className="rounded-full bg-emerald-500 p-0.5 text-white">
-                      <Check className="size-3" strokeWidth={3} />
-                    </div>
-                  ) : (
-                    <div className="size-4 rounded-full border-2 border-slate-200 dark:border-slate-700" />
-                  )}
-                </button>
-              ))}
+            <div className="grid gap-2 sm:grid-cols-2">
+              {ALL_PERMISSIONS.map((perm) => {
+                const checked = isSuper || formData.permissions.includes(perm.id)
+                return (
+                  <label
+                    key={perm.id}
+                    className={`flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-[15px] transition-colors ${
+                      checked
+                        ? 'border-brand-500/30 bg-brand-500/[0.04] text-slate-900 dark:border-brand-400/40 dark:text-white'
+                        : 'border-slate-200 text-slate-600 hover:border-slate-300 dark:border-white/10 dark:text-slate-400'
+                    } ${isSuper ? 'cursor-not-allowed opacity-60' : ''}`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="peer sr-only"
+                      checked={checked}
+                      disabled={isSuper}
+                      onChange={() => togglePermission(perm.id)}
+                    />
+                    <span
+                      className={`flex size-4 shrink-0 items-center justify-center rounded border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500 ${
+                        checked ? 'border-brand-600 bg-brand-600 text-white dark:border-brand-500 dark:bg-brand-500' : 'border-slate-300 dark:border-white/20'
+                      }`}
+                    >
+                      {checked && <Check className="size-3" strokeWidth={3} />}
+                    </span>
+                    {perm.label}
+                  </label>
+                )
+              })}
             </div>
-          </div>
+          </fieldset>
 
-          <div className="mt-12 flex items-center gap-3 rounded-2xl bg-slate-50 p-6 dark:bg-white/5">
-            <div className="relative flex h-6 items-center">
-              <input
-                type="checkbox"
-                id="isActive"
-                checked={formData.isActive}
-                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                className="peer size-5 cursor-pointer appearance-none rounded-lg border-2 border-slate-200 bg-white transition-all checked:border-blue-500 checked:bg-blue-500 dark:border-white/10 dark:bg-night-950"
-              />
-              <Check className="pointer-events-none absolute left-1 top-1/2 size-3 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100" strokeWidth={4} />
-            </div>
-            <label htmlFor="isActive" className="cursor-pointer text-sm font-bold text-slate-700 dark:text-slate-300">
-              Compte actif (autoriser la connexion)
-            </label>
-          </div>
-        </div>
+          <label className="mt-6 flex cursor-pointer items-center justify-between gap-4 border-t border-slate-100 pt-6 dark:border-white/[0.06]">
+            <span>
+              <span className="block text-[15px] font-medium text-slate-900 dark:text-white">Compte actif</span>
+              <span className="block text-[13px] text-slate-500">Autoriser la connexion à la console.</span>
+            </span>
+            <input
+              type="checkbox"
+              id="isActive"
+              checked={formData.isActive}
+              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+              className="peer sr-only"
+            />
+            <span className="relative h-5 w-9 shrink-0 rounded-full bg-slate-200 transition-colors peer-checked:bg-emerald-500 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500 dark:bg-white/15 after:absolute after:left-0.5 after:top-0.5 after:size-4 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-4" />
+          </label>
+        </Panel>
 
-        <div className="flex items-center justify-end gap-4">
-          <button
-            type="button"
-            onClick={() => navigate(`${ADMIN_PRIVATE_PATH}/utilisateurs`)}
-            className="rounded-full px-8 py-4 text-sm font-bold text-slate-500 transition hover:text-slate-900 dark:hover:text-white"
-          >
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <AdminButton variant="ghost" onClick={() => navigate(`${ADMIN_PRIVATE_PATH}/utilisateurs`)}>
             Annuler
-          </button>
-          <button
-            type="submit"
-            disabled={createMutation.isPending || updateMutation.isPending}
-            className="inline-flex items-center gap-3 rounded-full bg-blue-600 px-10 py-4 text-sm font-bold text-white shadow-xl shadow-blue-600/20 transition hover:bg-blue-700 active:scale-[0.98] disabled:opacity-50"
-          >
-            {createMutation.isPending || updateMutation.isPending ? (
-              <Loader2 className="size-5 animate-spin" />
-            ) : isEditMode ? (
-              <Save className="size-5" />
-            ) : (
-              <UserPlus className="size-5" />
-            )}
-            {isEditMode ? 'Enregistrer les modifications' : 'Créer l\'administrateur'}
-          </button>
+          </AdminButton>
+          <AdminButton type="submit" variant="primary" loading={saving} icon={isEditMode ? Save : UserPlus}>
+            {isEditMode ? 'Enregistrer les modifications' : "Créer l'administrateur"}
+          </AdminButton>
         </div>
       </form>
     </div>

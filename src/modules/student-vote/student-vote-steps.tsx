@@ -89,11 +89,11 @@ export function MatriculeStepPage() {
         {/* Visuel (masqué sur mobile) */}
         <div className="relative hidden overflow-hidden rounded-[1.25rem] md:block">
           <img src={heroCampus} alt="Campus de l'UCAO" className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-night-950/90 via-night-950/40 to-brand-950/30" />
+          <div className="absolute inset-0 bg-brand-950/70" />
           <div className="bg-grid absolute inset-0 opacity-30 [--grid-color:rgba(255,255,255,0.08)]" />
           <div className="absolute inset-x-8 bottom-8 space-y-4 text-white">
             <div className="flex size-11 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/20 backdrop-blur-md">
-              <ShieldCheck size={22} weight="duotone" className="text-aqua-300" />
+              <ShieldCheck size={22} weight="duotone" className="text-white" />
             </div>
             <h2 className="text-3xl font-semibold leading-tight tracking-tight">
               Votez en toute
@@ -119,7 +119,7 @@ export function MatriculeStepPage() {
               <div className="space-y-2">
                 <label htmlFor="vote-matricule" className="tt-label">Matricule</label>
                 <div className="group relative">
-                  <Fingerprint className="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-aqua-500" />
+                  <Fingerprint className="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-brand-600" />
                   <input
                     id="vote-matricule"
                     value={matricule}
@@ -137,7 +137,7 @@ export function MatriculeStepPage() {
               <div className="space-y-2">
                 <label htmlFor="vote-email" className="tt-label">E-mail</label>
                 <div className="group relative">
-                  <EnvelopeSimple className="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-aqua-500" />
+                  <EnvelopeSimple className="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-brand-600" />
                   <input
                     id="vote-email"
                     type="email"
@@ -170,7 +170,7 @@ export function MatriculeStepPage() {
             </form>
 
             <p className="flex items-center justify-center gap-2 text-xs text-slate-400">
-              <ShieldCheck size={14} className="text-aqua-500" />
+              <ShieldCheck size={14} className="text-crimson-500" />
               Vos informations restent confidentielles et sécurisées.
             </p>
           </div>
@@ -260,8 +260,8 @@ export function OtpStepPage() {
     <CardShell className="edge-highlight mx-auto max-w-md !rounded-3xl !p-8 text-center sm:!p-10">
       <div className="space-y-8">
         <div className="relative mx-auto flex size-14 items-center justify-center">
-          <span className="absolute inset-0 animate-pulse-ring rounded-2xl bg-aqua-400/30" aria-hidden />
-          <span className="relative flex size-14 items-center justify-center rounded-2xl bg-gradient-to-b from-slate-800 to-slate-950 text-aqua-300 shadow-lift ring-1 ring-white/10">
+          <span className="absolute inset-0 animate-pulse-ring rounded-2xl bg-brand-500/25" aria-hidden />
+          <span className="relative flex size-14 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-lift">
             <UserCheck size={26} weight="duotone" />
           </span>
         </div>
@@ -294,7 +294,7 @@ export function OtpStepPage() {
                   clearOtpSession()
                   navigate('/vote', { replace: true })
                 }}
-                className="font-medium text-slate-900 underline decoration-slate-300 underline-offset-4 transition-colors hover:decoration-aqua-500 dark:text-white dark:decoration-white/20"
+                className="font-medium text-slate-900 underline decoration-slate-300 underline-offset-4 transition-colors hover:decoration-brand-500 dark:text-white dark:decoration-white/20"
               >
                 Revenir en arrière
               </button>
@@ -347,13 +347,13 @@ export function CandidateListStepPage() {
               transition={{ delay: i * 0.05, duration: 0.45, ease: [0.16, 1, 0.3, 1] as const }}
               className={`group relative flex w-full items-center gap-4 rounded-2xl border bg-white p-4 text-left transition-[border-color,box-shadow,background-color] duration-300 sm:gap-5 sm:p-5 dark:bg-night-900/60 ${
                 selected
-                  ? 'border-aqua-500/70 shadow-glow dark:border-aqua-400/60'
+                  ? 'border-brand-500 shadow-glow dark:border-brand-400'
                   : 'border-slate-200/80 shadow-soft hover:border-slate-300 dark:border-white/[0.07] dark:hover:border-white/15'
               }`}
             >
               <div
                 className={`relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl transition-colors duration-300 ${
-                  selected ? 'bg-aqua-500/10 text-aqua-600 dark:text-aqua-300' : 'bg-slate-100 text-slate-400 dark:bg-white/[0.04]'
+                  selected ? 'bg-brand-500/10 text-brand-600 dark:text-brand-300' : 'bg-slate-100 text-slate-400 dark:bg-white/[0.04]'
                 }`}
               >
                 {list.imageUrl ? (
@@ -368,7 +368,7 @@ export function CandidateListStepPage() {
               </div>
               <span
                 className={`flex size-6 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${
-                  selected ? 'border-aqua-500 bg-aqua-500 text-white' : 'border-slate-300 dark:border-white/20'
+                  selected ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-300 dark:border-white/20'
                 }`}
                 aria-hidden
               >
@@ -487,7 +487,7 @@ export function ConfirmationStepPage() {
         </div>
 
         <div className="flex items-center justify-center gap-2 border-t border-slate-200/70 pt-6 text-xs text-slate-500 dark:border-white/[0.06]">
-          <ShieldCheck size={16} weight="duotone" className="text-aqua-500" />
+          <ShieldCheck size={16} weight="duotone" className="text-crimson-500" />
           Votre vote reste secret
         </div>
       </div>

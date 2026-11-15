@@ -27,7 +27,7 @@ function Brand({ size = 'md' }: { size?: 'md' | 'lg' }) {
       <span
         className={`font-semibold tracking-tight text-slate-900 dark:text-white ${size === 'lg' ? 'text-xl' : 'text-[15px]'}`}
       >
-        Vote<span className="text-brand-600 dark:text-aqua-300">BGDE</span>
+        Vote<span className="text-brand-600 dark:text-brand-300">BGDE</span>
       </span>
     </Link>
   )
@@ -223,7 +223,7 @@ export function SiteLayout({ children }: PropsWithChildren) {
                     Lancer le vote
                   </ButtonLink>
                   <p className="flex items-center justify-center gap-2 text-xs text-slate-500">
-                    <ShieldCheck size={14} className="text-aqua-500" /> Votre vote reste secret
+                    <ShieldCheck size={14} className="text-crimson-500" /> Votre vote reste secret
                   </p>
                 </motion.div>
               </div>
@@ -248,8 +248,8 @@ export function SiteLayout({ children }: PropsWithChildren) {
                 </p>
                 <span className="eyebrow">
                   <span className="relative flex size-2">
-                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-aqua-400 opacity-60" />
-                    <span className="relative inline-flex size-2 rounded-full bg-aqua-500" />
+                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-crimson-500 opacity-60" />
+                    <span className="relative inline-flex size-2 rounded-full bg-crimson-500" />
                   </span>
                   Vote secret · Sécurisé · Un étudiant, un vote
                 </span>

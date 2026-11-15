@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 
-type Particle = { x: number; y: number; vx: number; vy: number; r: number; tw: number }
+type Particle = { x: number; y: number; vx: number; vy: number; r: number; tw: number; red: boolean }
 
 type ParticleFieldProps = {
   className?: string
@@ -15,8 +15,11 @@ type ParticleFieldProps = {
   forceDark?: boolean
 }
 
-const AQUA = '45, 212, 191'
-const BRAND = '111, 140, 251'
+// Couleurs UCAO : bleu #2E3A8C et rouge bordeaux #841F27 (variantes claires en thème sombre)
+const PALETTE = {
+  light: { blue: '45, 58, 141', red: '130, 33, 39' },
+  dark: { blue: '146, 157, 214', red: '169, 51, 61' },
+}
 
 function isDarkTheme() {
   return document.documentElement.classList.contains('dark')
@@ -64,6 +67,7 @@ export function ParticleField({
         vy: (Math.random() - 0.5) * 0.25,
         r: Math.random() * 1.4 + 0.6,
         tw: Math.random() * Math.PI * 2,
+        red: Math.random() < 0.28,
       }))
     }
 
@@ -80,9 +84,9 @@ export function ParticleField({
 
     function draw(t: number) {
       ctx!.clearRect(0, 0, width, height)
-      const lineRGB = dark ? AQUA : BRAND
-      const dotRGB = dark ? AQUA : BRAND
-      const baseAlpha = dark ? 0.7 : 0.55
+      const pal = dark ? PALETTE.dark : PALETTE.light
+      const lineRGB = pal.blue
+      const baseAlpha = dark ? 0.75 : 0.5
       const maxD2 = linkDistance * linkDistance
 
       for (let i = 0; i < particles.length; i++) {
@@ -114,7 +118,7 @@ export function ParticleField({
           const dy = p.y - q.y
           const d2 = dx * dx + dy * dy
           if (d2 < maxD2) {
-            const a = (1 - d2 / maxD2) * (dark ? 0.22 : 0.16)
+            const a = (1 - d2 / maxD2) * (dark ? 0.2 : 0.14)
             ctx!.strokeStyle = `rgba(${lineRGB}, ${a})`
             ctx!.lineWidth = 0.6
             ctx!.beginPath()
@@ -130,7 +134,7 @@ export function ParticleField({
           const d2 = dx * dx + dy * dy
           const r2 = maxD2 * 1.4
           if (d2 < r2) {
-            ctx!.strokeStyle = `rgba(${AQUA}, ${(1 - d2 / r2) * 0.35})`
+            ctx!.strokeStyle = `rgba(${pal.red}, ${(1 - d2 / r2) * 0.35})`
             ctx!.lineWidth = 0.7
             ctx!.beginPath()
             ctx!.moveTo(p.x, p.y)
@@ -143,6 +147,7 @@ export function ParticleField({
       for (const p of particles) {
         const twinkle = reduceMotion ? 1 : 0.65 + Math.sin(t * 0.0015 + p.tw) * 0.35
         const a = baseAlpha * twinkle
+        const dotRGB = p.red ? pal.red : pal.blue
         // halo
         ctx!.fillStyle = `rgba(${dotRGB}, ${a * 0.18})`
         ctx!.beginPath()

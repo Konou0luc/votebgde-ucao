@@ -1,6 +1,8 @@
 import { type FormEvent, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { CalendarClock, FileText, Plus } from 'lucide-react'
+import { AdminButton, AdminButtonLink, ErrorState, Field, FormError, PageHeader, Panel } from '../shared/ui/admin-ui'
+import { adminInput, adminSelect, adminTextarea } from '../shared/ui/admin-ui-classes'
 import { getAdminErrorMessage } from '../modules/admin-dashboard/api'
 import { useCreateElectionMutation } from '../modules/admin-dashboard/hooks'
 import { canWriteElection } from '../modules/admin-dashboard/permissions'
@@ -66,134 +68,83 @@ export function AdminElectionCreatePage() {
 
   if (!canWrite) {
     return (
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-8 text-sm text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
-        <p>Vous n&apos;avez pas la permission de créer une élection.</p>
-        <Link to={`${ADMIN_PRIVATE_PATH}/scrutins`} className="mt-4 inline-block font-medium text-blue-600 underline dark:text-blue-400">
-          Retour à la liste
-        </Link>
-      </div>
+      <ErrorState
+        action={
+          <AdminButtonLink to={`${ADMIN_PRIVATE_PATH}/scrutins`} size="sm">
+            Retour à la liste
+          </AdminButtonLink>
+        }
+      >
+        Vous n&apos;avez pas la permission de créer une élection.
+      </ErrorState>
     )
   }
 
   return (
-    <div className="space-y-8 pb-12">
-      <header className="border-b border-slate-200/80 pb-8 dark:border-white/[0.07]">
-        <Link
-          to={`${ADMIN_PRIVATE_PATH}/scrutins`}
-          className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-        >
-          <ArrowLeft className="size-4" strokeWidth={1.25} />
-          Retour aux élections
-        </Link>
-        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Création</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white md:text-4xl">Nouvelle élection</h1>
-        <p className="mt-3 max-w-[62ch] text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-          Définissez l&apos;intitulé, la période et le statut initial. Les dates sont en heure locale du navigateur.
-        </p>
-      </header>
+    <div className="mx-auto max-w-3xl pb-12">
+      <PageHeader
+        back={{ to: `${ADMIN_PRIVATE_PATH}/scrutins`, label: 'Élections' }}
+        title="Nouvelle élection"
+        description="Définissez l'intitulé, la période et le statut initial. Les dates sont en heure locale."
+      />
 
-      <form
-        onSubmit={onSubmit}
-        className="mx-auto max-w-xl space-y-5 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-white/[0.07] dark:bg-white/[0.02] dark:shadow-none md:p-8"
-      >
-        <div>
-          <label htmlFor="ce-title" className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-400">
-            Titre
-          </label>
-          <input
-            id="ce-title"
-            value={title}
-            onChange={(ev) => setTitle(ev.target.value)}
-            className="tt-field-outline min-h-11 w-full rounded-xl px-3 py-2"
-            maxLength={180}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="ce-desc" className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-400">
-            Description (optionnel)
-          </label>
-          <textarea
-            id="ce-desc"
-            value={description}
-            onChange={(ev) => setDescription(ev.target.value)}
-            rows={3}
-            className="tt-field-outline w-full rounded-xl px-3 py-2"
-            maxLength={1500}
-          />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="ce-status" className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-400">
-              Statut initial
-            </label>
-            <select
-              id="ce-status"
-              value={status}
-              onChange={(ev) => setStatus(ev.target.value as ScrutinStatus)}
-              className="tt-field-outline min-h-11 w-full rounded-xl px-3 py-2"
-            >
-              {statuses.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
+      <form onSubmit={onSubmit} className="space-y-6">
+        <Panel title="Informations générales" icon={FileText}>
+          <div className="space-y-5">
+            <Field label="Titre" htmlFor="ce-title" required hint={`${title.length}/180 caractères`}>
+              <input
+                id="ce-title"
+                value={title}
+                onChange={(ev) => setTitle(ev.target.value)}
+                className={adminInput}
+                placeholder="Ex : Élection BGDE 2027"
+                maxLength={180}
+                required
+              />
+            </Field>
+            <Field label="Description" htmlFor="ce-desc" hint="Optionnel">
+              <textarea
+                id="ce-desc"
+                value={description}
+                onChange={(ev) => setDescription(ev.target.value)}
+                rows={4}
+                className={adminTextarea}
+                maxLength={1500}
+              />
+            </Field>
+            <Field label="Statut initial" htmlFor="ce-status" className="sm:max-w-xs">
+              <select id="ce-status" value={status} onChange={(ev) => setStatus(ev.target.value as ScrutinStatus)} className={adminSelect}>
+                {statuses.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
           </div>
-        </div>
+        </Panel>
 
-
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="ce-start" className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-400">
-              Début
-            </label>
-            <input
-              id="ce-start"
-              type="datetime-local"
-              value={startsAt}
-              onChange={(ev) => setStartsAt(ev.target.value)}
-              className="tt-field-outline min-h-11 w-full rounded-xl px-3 py-2"
-              required
-            />
+        <Panel title="Période de vote" icon={CalendarClock} delay={0.05}>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Début" htmlFor="ce-start" required>
+              <input id="ce-start" type="datetime-local" value={startsAt} onChange={(ev) => setStartsAt(ev.target.value)} className={adminInput} required />
+            </Field>
+            <Field label="Fin" htmlFor="ce-end" required>
+              <input id="ce-end" type="datetime-local" value={endsAt} onChange={(ev) => setEndsAt(ev.target.value)} className={adminInput} required />
+            </Field>
           </div>
-          <div>
-            <label htmlFor="ce-end" className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-400">
-              Fin
-            </label>
-            <input
-              id="ce-end"
-              type="datetime-local"
-              value={endsAt}
-              onChange={(ev) => setEndsAt(ev.target.value)}
-              className="tt-field-outline min-h-11 w-full rounded-xl px-3 py-2"
-              required
-            />
-          </div>
+        </Panel>
+
+        {error ? <FormError>{error}</FormError> : null}
+
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <AdminButtonLink to={`${ADMIN_PRIVATE_PATH}/scrutins`} variant="ghost">
+            Annuler
+          </AdminButtonLink>
+          <AdminButton type="submit" variant="primary" icon={Plus} loading={createMutation.isPending}>
+            {createMutation.isPending ? 'Création…' : "Créer l'élection"}
+          </AdminButton>
         </div>
-
-        {error ? (
-          <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-100">
-            {error}
-          </p>
-        ) : null}
-
-        <button
-          type="submit"
-          disabled={createMutation.isPending}
-          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-blue-600 px-6 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
-        >
-          {createMutation.isPending ? (
-            <>
-              <Loader2 className="size-4 animate-spin" />
-              Création...
-            </>
-          ) : (
-            "Créer l'élection"
-          )}
-        </button>
       </form>
     </div>
   )

@@ -31,9 +31,9 @@ function Stepper({ current }: { current: number }) {
                   aria-current={active ? 'step' : undefined}
                   className={`flex size-8 items-center justify-center rounded-full text-xs font-medium transition-all duration-500 ${
                     done
-                      ? 'bg-aqua-500 text-white shadow-[0_0_0_4px_rgba(45,212,191,0.15)]'
+                      ? 'bg-brand-600 text-white'
                       : active
-                        ? 'bg-slate-950 text-white shadow-[0_0_0_4px_rgba(15,23,42,0.08)] dark:bg-white dark:text-night-950 dark:shadow-[0_0_0_4px_rgba(255,255,255,0.08)]'
+                        ? 'bg-white text-brand-700 ring-2 ring-brand-600 dark:bg-night-900 dark:text-white dark:ring-brand-400'
                         : 'bg-white text-slate-400 ring-1 ring-inset ring-slate-200 dark:bg-night-900 dark:ring-white/10'
                   }`}
                 >
@@ -50,7 +50,7 @@ function Stepper({ current }: { current: number }) {
               {i < STEPS.length - 1 && (
                 <div className="relative mx-2 mb-0 h-px flex-1 bg-slate-200 dark:bg-white/10 sm:mb-6">
                   <motion.div
-                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-aqua-500 to-aqua-400"
+                    className="absolute inset-y-0 left-0 bg-brand-600"
                     initial={false}
                     animate={{ width: done ? '100%' : '0%' }}
                     transition={{ duration: 0.6, ease: EASE_OUT }}

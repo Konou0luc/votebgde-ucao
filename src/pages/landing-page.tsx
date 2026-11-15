@@ -66,15 +66,15 @@ export function LandingPage() {
     <div className="w-full">
       {/* ─── Hero ─── */}
       <HeroSection>
-        <div className="section-container flex flex-col items-center justify-center pb-20 pt-32 text-center md:min-h-[min(88dvh,820px)] md:pb-24 md:pt-40">
+        <div className="section-container flex flex-col items-center justify-center pb-20 pt-32 text-center md:min-h-[min(80dvh,760px)] md:pb-24 md:pt-40">
           <RevealGroup immediate step={0.09} className="flex flex-col items-center">
             <RevealItem>
               <Link to={activeScrutin ? '/vote' : '/resultats'} className="eyebrow group transition-colors hover:border-slate-300 dark:hover:border-white/20">
                 <span className="relative flex size-2">
                   {activeScrutin && (
-                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-aqua-400 opacity-70" />
+                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-crimson-500 opacity-70" />
                   )}
-                  <span className={`relative inline-flex size-2 rounded-full ${activeScrutin ? 'bg-aqua-500' : 'bg-slate-400'}`} />
+                  <span className={`relative inline-flex size-2 rounded-full ${activeScrutin ? 'bg-crimson-500' : 'bg-slate-400'}`} />
                 </span>
                 {isLoading
                   ? 'Chargement du vote…'
@@ -125,7 +125,7 @@ export function LandingPage() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.5, ease: EASE_OUT }}
-                className="mt-14 grid w-full max-w-3xl gap-3 sm:grid-cols-3"
+                className="mt-12 grid w-full max-w-3xl gap-3 sm:grid-cols-3"
               >
                 {[
                   { icon: LockKey, label: 'Votre vote reste secret' },
@@ -136,7 +136,7 @@ export function LandingPage() {
                     key={label}
                     className="flex items-center justify-center gap-2.5 rounded-xl border border-slate-200/80 bg-white/70 px-4 py-3 text-sm text-slate-700 backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-slate-300"
                   >
-                    <Icon size={18} weight="duotone" className="shrink-0 text-aqua-600 dark:text-aqua-300" />
+                    <Icon size={18} weight="duotone" className="shrink-0 text-crimson-700 dark:text-crimson-500" />
                     {label}
                   </li>
                 ))}
@@ -147,7 +147,7 @@ export function LandingPage() {
       </HeroSection>
 
       {/* ─── Garanties ─── */}
-      <section className="relative py-24 md:py-32">
+      <section className="relative py-16 md:py-24">
         <div className="section-container">
           <Reveal className="mx-auto max-w-2xl text-center">
             <p className="tt-overline">Vos garanties</p>
@@ -159,11 +159,11 @@ export function LandingPage() {
             </p>
           </Reveal>
 
-          <RevealGroup className="mt-14 grid gap-4 md:grid-cols-3">
+          <RevealGroup className="mt-10 grid gap-4 md:grid-cols-3">
             {pillars.map(({ icon: Icon, title, desc }) => (
               <RevealItem key={title}>
                 <SpotlightCard className="h-full p-7">
-                  <div className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-b from-white to-slate-50 text-brand-600 shadow-soft ring-1 ring-slate-200/80 dark:from-white/[0.08] dark:to-white/[0.02] dark:text-aqua-300 dark:ring-white/10">
+                  <div className="flex size-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700 ring-1 ring-brand-100 dark:bg-brand-500/15 dark:text-brand-300 dark:ring-brand-400/20">
                     <Icon size={22} weight="duotone" />
                   </div>
                   <h3 className="mt-6 text-lg font-semibold tracking-tight text-slate-950 dark:text-white">{title}</h3>
@@ -176,9 +176,9 @@ export function LandingPage() {
       </section>
 
       {/* ─── Processus ─── */}
-      <section className="relative overflow-hidden border-y border-slate-200/70 bg-white py-24 dark:border-white/[0.06] dark:bg-night-900/40 md:py-32">
+      <section className="relative overflow-hidden border-y border-slate-200/70 bg-white py-16 dark:border-white/[0.06] dark:bg-night-900/40 md:py-24">
         <div className="bg-dots mask-radial pointer-events-none absolute inset-0 opacity-70" aria-hidden />
-        <div className="section-container relative grid items-center gap-14 lg:grid-cols-[1fr_1.1fr] lg:gap-20">
+        <div className="section-container relative grid items-center gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
           <Reveal className="relative">
             <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 shadow-lift dark:border-white/10">
               <img
@@ -187,9 +187,9 @@ export function LandingPage() {
                 loading="lazy"
                 className="aspect-[4/5] w-full object-cover sm:aspect-[4/3] lg:aspect-[4/5]"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-night-950/80 via-night-950/10 to-transparent" />
-              <div className="absolute inset-x-5 bottom-5 flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 p-4 text-white backdrop-blur-xl">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-aqua-400/20 text-aqua-200 ring-1 ring-aqua-300/30">
+              <div className="absolute inset-0 bg-night-950/20" />
+              <div className="absolute inset-x-5 bottom-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-brand-950/85 p-4 text-white backdrop-blur-md">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-crimson-700 text-white">
                   <Timer size={20} weight="duotone" />
                 </div>
                 <p className="text-sm leading-snug text-white/85">
@@ -212,14 +212,14 @@ export function LandingPage() {
 
             <RevealGroup step={0.08} className="relative mt-10">
               <div
-                className="absolute bottom-6 left-[19px] top-6 w-px bg-gradient-to-b from-brand-500/40 via-aqua-400/40 to-transparent"
+                className="absolute bottom-6 left-[31px] top-6 w-px bg-slate-200 dark:bg-white/10"
                 aria-hidden
               />
               <ol className="space-y-2">
                 {steps.map(({ title, desc, icon: Icon }, i) => (
                   <RevealItem key={title}>
                     <li className="group relative flex gap-5 rounded-2xl p-3 transition-colors duration-300 hover:bg-slate-50 dark:hover:bg-white/[0.03]">
-                      <div className="relative z-10 flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-soft transition-colors duration-300 group-hover:border-aqua-400/60 group-hover:text-aqua-600 dark:border-white/10 dark:bg-night-900 dark:text-slate-400 dark:group-hover:text-aqua-300">
+                      <div className="relative z-10 flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-soft transition-colors duration-300 group-hover:border-brand-600 group-hover:bg-brand-600 group-hover:text-white dark:border-white/10 dark:bg-night-900 dark:text-slate-400">
                         <Icon size={18} weight="duotone" />
                       </div>
                       <div className="pt-1.5">
@@ -240,7 +240,7 @@ export function LandingPage() {
 
       {/* ─── Listes candidates ─── */}
       {lists.length > 0 && (
-        <section id="candidats" className="scroll-mt-24 py-24 md:py-32">
+        <section id="candidats" className="scroll-mt-24 py-16 md:py-24">
           <div className="section-container">
             <Reveal className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
               <div className="max-w-xl">
@@ -316,16 +316,15 @@ export function LandingPage() {
 
       {/* ─── Appel à l'action ─── */}
       <section className="px-4 py-16 sm:px-6 md:py-24 lg:px-8">
-        <div className="relative isolate mx-auto max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 bg-night-950 px-6 py-20 text-center shadow-lift md:px-12 md:py-28">
+        <div className="relative isolate mx-auto max-w-6xl overflow-hidden rounded-[2rem] border border-brand-800 bg-brand-700 px-6 py-16 text-center shadow-lift md:px-12 md:py-20">
           <div className="dark">
-            <Backdrop pattern="grid" particles glow forceDark />
+            <Backdrop pattern="grid" particles forceDark />
           </div>
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-aqua-400/60 to-transparent" aria-hidden />
           <Reveal className="relative">
             <h2 className="mx-auto max-w-2xl text-[clamp(2.25rem,5vw,3.75rem)] font-semibold leading-[1.02] tracking-[-0.035em] text-white">
-              Prêt à faire <span className="bg-gradient-to-r from-brand-300 to-aqua-300 bg-clip-text text-transparent">votre choix ?</span>
+              Prêt à faire <span className="underline decoration-crimson-500 decoration-4 underline-offset-[10px]">votre choix ?</span>
             </h2>
-            <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-slate-400 md:text-lg">
+            <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-brand-100 md:text-lg">
               Rejoignez la communauté étudiante de l’UCAO et participez au vote en toute confiance. Le futur du campus
               commence par votre vote.
             </p>
@@ -333,7 +332,7 @@ export function LandingPage() {
               <ButtonLink
                 to="/vote"
                 size="lg"
-                className="w-full !bg-white !text-night-950 hover:!shadow-[0_8px_32px_-8px_rgba(45,212,191,0.6)] sm:w-auto"
+                className="w-full !bg-white !text-brand-800 hover:!bg-brand-50 sm:w-auto"
                 trailing={<ArrowRight size={16} weight="bold" />}
               >
                 Commencer à voter
@@ -342,7 +341,7 @@ export function LandingPage() {
                 to="/resultats"
                 variant="outline"
                 size="lg"
-                className="w-full !text-white !ring-white/20 hover:!bg-white/5 sm:w-auto"
+                className="w-full !text-white !ring-white/30 hover:!bg-white/10 sm:w-auto"
               >
                 Voir les résultats
               </ButtonLink>
@@ -366,15 +365,15 @@ function ScrutinPanel({ scrutin, listCount }: { scrutin: ActiveScrutin; listCoun
       initial={{ opacity: 0, y: 24, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.9, delay: 0.45, ease: EASE_OUT }}
-      className="edge-highlight mt-16 w-full max-w-3xl rounded-2xl border border-slate-200/80 bg-white/70 p-1.5 shadow-lift backdrop-blur-xl dark:border-white/[0.08] dark:bg-white/[0.03]"
+      className="mt-12 w-full max-w-3xl rounded-2xl border border-slate-200/80 bg-white/70 p-1.5 shadow-lift backdrop-blur-xl dark:border-white/[0.08] dark:bg-white/[0.03]"
     >
       <div className="rounded-xl border border-slate-200/60 bg-white/80 text-left dark:border-white/[0.06] dark:bg-night-900/70">
         <div className="flex items-center justify-between gap-4 border-b border-slate-200/60 px-5 py-3.5 dark:border-white/[0.06]">
           <div className="flex min-w-0 items-center gap-2.5">
-            <ShieldCheck size={16} weight="duotone" className="shrink-0 text-aqua-500" />
+            <ShieldCheck size={16} weight="duotone" className="shrink-0 text-crimson-500" />
             <p className="truncate text-sm font-medium text-slate-900 dark:text-white">{scrutin.title}</p>
           </div>
-          <span className="shrink-0 rounded-full bg-aqua-500/10 px-2.5 py-0.5 text-[11px] font-medium text-aqua-700 ring-1 ring-inset ring-aqua-500/20 dark:text-aqua-300">
+          <span className="shrink-0 rounded-full bg-crimson-700 px-2.5 py-0.5 text-[11px] font-medium text-white">
             {voteStatusLabelPublic(scrutin.status)}
           </span>
         </div>

@@ -14,7 +14,7 @@ export function NotFoundPage() {
           initial={{ opacity: 0, y: 16, filter: 'blur(8px)' }}
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           transition={{ duration: 0.9, ease: EASE_OUT }}
-          className="block bg-gradient-to-b from-slate-950 to-slate-400 bg-clip-text font-mono text-[8rem] font-medium leading-none tracking-tighter text-transparent dark:from-white dark:to-white/20 sm:text-[11rem]"
+          className="block font-mono text-[8rem] font-medium leading-none tracking-tighter text-brand-600 dark:text-brand-300 sm:text-[11rem]"
         >
           404
         </motion.span>

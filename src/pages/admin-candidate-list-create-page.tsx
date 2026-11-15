@@ -1,18 +1,30 @@
 import { type FormEvent, useEffect, useState } from 'react'
-import { useNavigate, useParams, Link } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
-  ArrowLeft,
-  Loader2,
+  FileText,
+  Image as ImageIcon,
+  ListOrdered,
   Plus,
+  Save,
+  Upload,
   Users,
   Video,
-  Image as ImageIcon,
   X,
-  FileVideo,
-  FileImage,
-  Megaphone,
-  Save,
+  Clapperboard,
+  type LucideIcon,
 } from 'lucide-react'
+import {
+  AdminButton,
+  AdminButtonLink,
+  ErrorState,
+  Field,
+  FormError,
+  IconButton,
+  LoadingState,
+  PageHeader,
+  Panel,
+} from '../shared/ui/admin-ui'
+import { adminInput, adminSelect, adminTextarea } from '../shared/ui/admin-ui-classes'
 import { getAdminErrorMessage } from '../modules/admin-dashboard/api'
 import { useAdminAuthStore } from '../modules/admin-dashboard/auth-store'
 import { useToastStore } from '../shared/ui/toast-store'
@@ -25,6 +37,72 @@ import {
 import { canWriteCandidateList } from '../modules/admin-dashboard/permissions'
 import type { CandidateListMember } from '../modules/admin-dashboard/types'
 import { ADMIN_PRIVATE_PATH } from '../shared/constants/routes'
+
+function MediaPicker({
+  label,
+  icon: Icon,
+  accept,
+  file,
+  currentUrl,
+  kind,
+  onPick,
+  onClear,
+}: {
+  label: string
+  icon: LucideIcon
+  accept: string
+  file: File | null
+  currentUrl?: string | null
+  kind: 'video' | 'image'
+  onPick: (file: File) => void
+  onClear: () => void
+}) {
+  return (
+    <div className="space-y-2">
+      <p className="text-[15px] font-medium text-slate-700 dark:text-slate-300">{label}</p>
+      {currentUrl && !file && (
+        <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-white/10">
+          {kind === 'video' ? (
+            <video src={currentUrl} controls className="aspect-video w-full bg-black object-cover" />
+          ) : (
+            <img src={currentUrl} alt="Actuelle" className="aspect-video w-full object-cover" />
+          )}
+        </div>
+      )}
+      {file ? (
+        <div className="flex items-center gap-3 rounded-lg border border-emerald-500/25 bg-emerald-500/[0.05] p-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-300">
+            <Icon className="size-4" strokeWidth={1.75} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[15px] font-medium text-slate-900 dark:text-white">{file.name}</p>
+            <p className="text-[13px] text-slate-500">{(file.size / (1024 * 1024)).toFixed(2)} Mo · prêt à envoyer</p>
+          </div>
+          <IconButton label="Retirer le fichier" icon={X} onClick={onClear} />
+        </div>
+      ) : (
+        <label className="group flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-slate-300 px-3 py-3 transition-colors hover:border-brand-400 hover:bg-brand-500/[0.03] dark:border-white/15 dark:hover:border-brand-400/60">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition-colors group-hover:bg-brand-600 group-hover:text-white dark:bg-white/[0.06] dark:group-hover:bg-brand-500">
+            <Upload className="size-4" strokeWidth={1.75} />
+          </span>
+          <span className="text-[15px]">
+            <span className="block font-medium text-slate-900 dark:text-white">{currentUrl ? 'Remplacer le fichier' : 'Choisir un fichier'}</span>
+            <span className="block text-[13px] text-slate-500">{kind === 'video' ? 'Vidéo (MP4, WebM…)' : 'Image (JPG, PNG, WebP…)'}</span>
+          </span>
+          <input
+            type="file"
+            accept={accept}
+            className="sr-only"
+            onChange={(e) => {
+              const f = e.target.files?.[0]
+              if (f) onPick(f)
+            }}
+          />
+        </label>
+      )}
+    </div>
+  )
+}
 
 export function AdminCandidateListCreatePage() {
   const { id, listId } = useParams<{ id: string; listId?: string }>()
@@ -120,324 +198,255 @@ export function AdminCandidateListCreatePage() {
   }
 
   if (scrutinsQuery.isLoading || !id) {
-    return (
-      <div className="flex min-h-[40dvh] flex-col items-center justify-center gap-3">
-        <Loader2 className="size-8 animate-spin text-blue-600 dark:text-blue-400" />
-        <p className="text-sm text-slate-600 dark:text-slate-400">Chargement...</p>
-      </div>
-    )
+    return <LoadingState />
   }
 
   if (scrutinsQuery.isError || !election) {
     return (
-      <div className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-8 text-sm text-rose-900 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-100">
-        <p>Élection introuvable.</p>
-        <Link to={`${ADMIN_PRIVATE_PATH}/scrutins`} className="mt-4 inline-block font-medium text-blue-600 dark:text-blue-400">
-          Retour aux élections
-        </Link>
-      </div>
+      <ErrorState
+        action={
+          <AdminButtonLink to={`${ADMIN_PRIVATE_PATH}/scrutins`} size="sm">
+            Retour aux élections
+          </AdminButtonLink>
+        }
+      >
+        Élection introuvable.
+      </ErrorState>
     )
   }
 
   if (!canListWrite) {
-    return <div className="p-8 text-center text-rose-600">Accès refusé.</div>
+    return <ErrorState>Accès refusé : vous ne pouvez pas gérer les listes candidates.</ErrorState>
   }
 
+  function addMember() {
+    if (memberName.trim() && memberRole) {
+      setNewListMembers((p) => [...p, { name: memberName.trim(), role: memberRole }])
+      setMemberName('')
+    }
+  }
+
+  function addPlanItem() {
+    if (planItem.trim()) {
+      setNewListActionPlan((p) => [...p, planItem.trim()])
+      setPlanItem('')
+    }
+  }
+
+  const saving = createListMutation.isPending || updateListMutation.isPending
+
   return (
-    <div className="mx-auto max-w-5xl pb-12">
-      <header className="mb-8 flex flex-col gap-4">
-        <Link
-          to={`${ADMIN_PRIVATE_PATH}/scrutins/${id}`}
-          className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-        >
-          <ArrowLeft className="size-3" strokeWidth={2} />
-          Retour à l&apos;élection
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-950 dark:text-white md:text-3xl">
-            {isEditMode ? 'Modifier la Liste' : 'Nouvelle Liste Candidate'}
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Pour l&apos;élection : <span className="font-semibold text-blue-600 dark:text-blue-400">{election.title}</span>
-          </p>
-        </div>
-      </header>
+    <div className="pb-12">
+      <PageHeader
+        back={{ to: `${ADMIN_PRIVATE_PATH}/scrutins/${id}`, label: election.title }}
+        title={isEditMode ? 'Modifier la liste' : 'Nouvelle liste candidate'}
+        description={
+          <>
+            Pour l&apos;élection <span className="font-medium text-slate-900 dark:text-white">{election.title}</span>
+          </>
+        }
+      />
 
-      <form
-        onSubmit={onSaveList}
-        className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-night-900 md:p-10"
-      >
-        <div className="space-y-8">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div className="space-y-2.5">
-              <label className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-400">Nom</label>
-              <input
-                required
-                value={newListName}
-                onChange={(ev) => setNewListName(ev.target.value)}
-                placeholder="Ex: Excellence UCAO"
-                className="h-11 md:h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm md:text-base font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950"
-              />
-            </div>
-            <div className="space-y-2.5">
-              <label className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-400">Slogan</label>
-              <input
-                value={newListSlogan}
-                onChange={(ev) => setNewListSlogan(ev.target.value)}
-                placeholder="Ex: Bâtir ensemble"
-                className="h-11 md:h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm md:text-base font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950"
-              />
-            </div>
-            <div className="space-y-2.5">
-              <label className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-400">Ordre d&apos;affichage</label>
-              <input
-                type="number"
-                min={1}
-                value={newListOrder}
-                onChange={(ev) => setNewListOrder(Number(ev.target.value) || 1)}
-                className="h-11 md:h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm md:text-base font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2.5">
-            <label className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-400">Description</label>
-            <textarea
-              rows={3}
-              value={newListDescription}
-              onChange={(ev) => setNewListDescription(ev.target.value)}
-              placeholder="Détaillez les ambitions de cette liste..."
-              className="w-full rounded-xl border border-slate-200 bg-white p-4 text-sm md:text-base font-medium outline-none transition focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Users className="size-4 md:size-5 text-blue-600" />
-                <h4 className="text-[10px] md:text-sm font-bold uppercase tracking-widest text-slate-900 dark:text-white">Membres</h4>
+      <form onSubmit={onSaveList}>
+        <div className="grid items-start gap-6 xl:grid-cols-3">
+          <div className="space-y-6 xl:col-span-2">
+            <Panel title="Informations" icon={FileText}>
+              <div className="space-y-5">
+                <div className="grid gap-5 md:grid-cols-[1fr_1fr_8rem]">
+                  <Field label="Nom de la liste" htmlFor="cl-name" required>
+                    <input
+                      id="cl-name"
+                      required
+                      value={newListName}
+                      onChange={(ev) => setNewListName(ev.target.value)}
+                      placeholder="Ex : Excellence UCAO"
+                      className={adminInput}
+                    />
+                  </Field>
+                  <Field label="Slogan" htmlFor="cl-slogan">
+                    <input
+                      id="cl-slogan"
+                      value={newListSlogan}
+                      onChange={(ev) => setNewListSlogan(ev.target.value)}
+                      placeholder="Ex : Bâtir ensemble"
+                      className={adminInput}
+                    />
+                  </Field>
+                  <Field label="N° d'ordre" htmlFor="cl-order">
+                    <input
+                      id="cl-order"
+                      type="number"
+                      min={1}
+                      value={newListOrder}
+                      onChange={(ev) => setNewListOrder(Number(ev.target.value) || 1)}
+                      className={adminInput}
+                    />
+                  </Field>
+                </div>
+                <Field label="Description" htmlFor="cl-desc">
+                  <textarea
+                    id="cl-desc"
+                    rows={4}
+                    value={newListDescription}
+                    onChange={(ev) => setNewListDescription(ev.target.value)}
+                    placeholder="Détaillez les ambitions de cette liste…"
+                    className={adminTextarea}
+                  />
+                </Field>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {newListMembers.map((m, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-1.5 text-[10px] md:text-xs font-bold text-slate-700 shadow-sm ring-1 ring-slate-200 dark:bg-white/[0.05] dark:text-slate-200 dark:ring-white/[0.1]"
-                  >
-                    {m.name} ({m.role})
-                    <button
-                      type="button"
-                      onClick={() => setNewListMembers((prev) => prev.filter((_, i) => i !== idx))}
-                      className="text-slate-400 hover:text-rose-500"
-                    >
-                      <X className="size-3 md:size-3.5" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-              <div className="flex flex-col gap-3 rounded-2xl bg-slate-50/50 p-4 md:p-5 dark:bg-white/5">
+            </Panel>
+
+            <Panel
+              title="Membres"
+              icon={Users}
+              delay={0.04}
+              description={`${newListMembers.length} membre${newListMembers.length > 1 ? 's' : ''}`}
+            >
+              {newListMembers.length > 0 && (
+                <ul className="mb-4 divide-y divide-slate-100 rounded-lg border border-slate-200/80 dark:divide-white/[0.06] dark:border-white/[0.08]">
+                  {newListMembers.map((m, idx) => (
+                    <li key={idx} className="flex items-center gap-3 px-3 py-2">
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600 dark:bg-white/[0.06] dark:text-slate-300">
+                        {m.name
+                          .split(/\s+/)
+                          .slice(0, 2)
+                          .map((x) => x[0]?.toUpperCase())
+                          .join('')}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[15px] font-medium text-slate-900 dark:text-white">{m.name}</p>
+                        <p className="text-[13px] text-slate-500">{m.role}</p>
+                      </div>
+                      <IconButton
+                        label={`Retirer ${m.name}`}
+                        icon={X}
+                        tone="danger"
+                        onClick={() => setNewListMembers((prev) => prev.filter((_, i) => i !== idx))}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <label htmlFor="cl-member-name" className="sr-only">
+                  Nom du membre
+                </label>
                 <input
+                  id="cl-member-name"
                   placeholder="Nom du membre"
                   value={memberName}
                   onChange={(e) => setMemberName(e.target.value)}
-                  className="h-11 md:h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm md:text-base font-medium outline-none focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      addMember()
+                    }
+                  }}
+                  className={`${adminInput} flex-1`}
                 />
-                <div className="flex gap-2">
-                  <select
-                    value={memberRole}
-                    onChange={(e) => setMemberRole(e.target.value)}
-                    className="h-11 md:h-12 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm md:text-base font-medium outline-none focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950"
-                  >
-                    {adminRoles.map((role) => (
-                      <option key={role} value={role}>
-                        {role}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (memberName && memberRole) {
-                        setNewListMembers((p) => [...p, { name: memberName, role: memberRole }])
-                        setMemberName('')
-                      }
-                    }}
-                    className="flex size-11 md:size-12 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 active:scale-95"
-                  >
-                    <Plus className="size-5 md:size-6" />
-                  </button>
-                </div>
+                <label htmlFor="cl-member-role" className="sr-only">
+                  Rôle
+                </label>
+                <select
+                  id="cl-member-role"
+                  value={memberRole}
+                  onChange={(e) => setMemberRole(e.target.value)}
+                  className={`${adminSelect} sm:w-56`}
+                >
+                  {adminRoles.map((role) => (
+                    <option key={role} value={role}>
+                      {role}
+                    </option>
+                  ))}
+                </select>
+                <AdminButton icon={Plus} onClick={addMember} disabled={!memberName.trim()} className="h-11">
+                  Ajouter
+                </AdminButton>
               </div>
-            </div>
+            </Panel>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Megaphone className="size-4 md:size-5 text-amber-500" />
-                <h4 className="text-[10px] md:text-sm font-bold uppercase tracking-widest text-slate-900 dark:text-white">Plan d&apos;action</h4>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {newListActionPlan.map((item, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-1.5 text-[10px] md:text-xs font-bold text-slate-700 shadow-sm ring-1 ring-slate-200 dark:bg-white/[0.05] dark:text-slate-200 dark:ring-white/[0.1]"
-                  >
-                    {item}
-                    <button
-                      type="button"
-                      onClick={() => setNewListActionPlan((prev) => prev.filter((_, i) => i !== idx))}
-                      className="text-slate-400 hover:text-rose-500"
-                    >
-                      <X className="size-3 md:size-3.5" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-              <div className="flex gap-2 rounded-2xl bg-slate-50/50 p-4 md:p-5 dark:bg-white/5">
+            <Panel
+              title="Programme"
+              icon={ListOrdered}
+              delay={0.08}
+              description={`${newListActionPlan.length} point${newListActionPlan.length > 1 ? 's' : ''}`}
+            >
+              {newListActionPlan.length > 0 && (
+                <ol className="mb-4 divide-y divide-slate-100 rounded-lg border border-slate-200/80 dark:divide-white/[0.06] dark:border-white/[0.08]">
+                  {newListActionPlan.map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-3 px-3 py-2.5">
+                      <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md bg-slate-100 text-[13px] tabular-nums text-slate-600 dark:bg-white/[0.06] dark:text-slate-300">
+                        {idx + 1}
+                      </span>
+                      <p className="flex-1 pt-0.5 text-[15px] text-slate-700 dark:text-slate-300">{item}</p>
+                      <IconButton
+                        label="Retirer ce point"
+                        icon={X}
+                        tone="danger"
+                        onClick={() => setNewListActionPlan((prev) => prev.filter((_, i) => i !== idx))}
+                      />
+                    </li>
+                  ))}
+                </ol>
+              )}
+              <div className="flex gap-2">
+                <label htmlFor="cl-plan" className="sr-only">
+                  Point du programme
+                </label>
                 <input
-                  placeholder="Ajouter un point au programme..."
+                  id="cl-plan"
+                  placeholder="Ajouter un point au programme… (Entrée pour valider)"
                   value={planItem}
                   onChange={(e) => setPlanItem(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault()
-                      if (planItem.trim()) {
-                        setNewListActionPlan((p) => [...p, planItem.trim()])
-                        setPlanItem('')
-                      }
+                      addPlanItem()
                     }
                   }}
-                  className="h-11 md:h-12 flex-1 rounded-xl border border-slate-200 bg-white px-4 text-sm md:text-base font-medium outline-none focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-night-950"
+                  className={`${adminInput} flex-1`}
                 />
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (planItem.trim()) {
-                      setNewListActionPlan((p) => [...p, planItem.trim()])
-                      setPlanItem('')
-                    }
-                  }}
-                  className="flex size-11 md:size-12 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 active:scale-95"
-                >
-                  <Plus className="size-5 md:size-6" />
-                </button>
+                <AdminButton icon={Plus} onClick={addPlanItem} disabled={!planItem.trim()} className="h-11">
+                  Ajouter
+                </AdminButton>
               </div>
-            </div>
+            </Panel>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2"> 
-            {/* Section Vidéo */} 
-            <div className="space-y-4"> 
-              <div className="flex items-center gap-2"> 
-                <Video className="size-4 md:size-5 text-rose-500" /> 
-                <h4 className="text-[10px] md:text-sm font-bold uppercase tracking-widest text-slate-900 dark:text-white">Vidéo de présentation</h4> 
-              </div> 
-              
-              {/* Prévisualisation de la vidéo existante */} 
-              {isEditMode && editingList?.videoUrl && !newListVideo && ( 
-                <div className="mb-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/5"> 
-                  <video src={editingList.videoUrl} controls className="aspect-video w-full object-cover" /> 
-                  <div className="p-2 text-center bg-slate-100 dark:bg-white/5"> 
-                    <p className="text-[10px] text-slate-500 font-bold uppercase">Vidéo actuelle</p> 
-                  </div> 
-                </div> 
-              )} 
-          
-              {newListVideo ? ( 
-                <div className="flex items-center justify-between rounded-2xl bg-emerald-50 p-3 md:p-4 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:ring-emerald-500/30"> 
-                  <div className="flex items-center gap-3"> 
-                    <div className="rounded-lg bg-white p-2 md:p-2.5 shadow-sm dark:bg-white/5"> 
-                      <FileVideo className="size-5 md:size-6 text-emerald-600" /> 
-                    </div> 
-                    <div className="min-w-0"> 
-                      <p className="truncate text-xs md:text-sm font-bold text-emerald-900 dark:text-emerald-200">{newListVideo.name}</p> 
-                      <p className="text-[10px] md:text-xs text-emerald-600">{(newListVideo.size / (1024 * 1024)).toFixed(2)} MB</p> 
-                    </div> 
-                  </div> 
-                  <button type="button" onClick={() => setNewListVideo(null)} className="rounded-lg p-2 md:p-2.5 text-emerald-600 transition hover:bg-rose-50 hover:text-rose-600"> 
-                    <X className="size-4 md:size-5" /> 
-                  </button> 
-                </div> 
-              ) : ( 
-                <label className="group flex h-28 md:h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/30 transition hover:border-blue-500 hover:bg-blue-50/30 dark:border-white/10 dark:bg-white/5"> 
-                  <div className="mb-2 md:mb-3 flex size-10 md:size-12 items-center justify-center rounded-xl bg-white text-slate-400 shadow-sm transition group-hover:bg-blue-600 group-hover:text-white dark:bg-white/5"> 
-                    <Video className="size-5 md:size-6" /> 
-                  </div> 
-                  <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-500 group-hover:text-blue-600"> 
-                    {isEditMode && editingList?.videoUrl ? 'Remplacer la vidéo' : 'Choisir une vidéo'} 
-                  </span> 
-                  <input type="file" accept="video/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) setNewListVideo(file); }} /> 
-                </label> 
-              )} 
-            </div> 
-          
-            {/* Section Photo */} 
-            <div className="space-y-4"> 
-              <div className="flex items-center gap-2"> 
-                <ImageIcon className="size-4 md:size-5 text-blue-500" /> 
-                <h4 className="text-[10px] md:text-sm font-bold uppercase tracking-widest text-slate-900 dark:text-white">Photo de liste</h4> 
-              </div> 
-          
-              {/* Prévisualisation de l'image existante */} 
-              {isEditMode && editingList?.imageUrl && !newListImage && ( 
-                <div className="mb-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/5"> 
-                  <img src={editingList.imageUrl} alt="Actuelle" className="aspect-video w-full object-cover" /> 
-                  <div className="p-2 text-center bg-slate-100 dark:bg-white/5"> 
-                    <p className="text-[10px] text-slate-500 font-bold uppercase">Photo actuelle</p> 
-                  </div> 
-                </div> 
-              )} 
-          
-              {newListImage ? ( 
-                <div className="flex items-center justify-between rounded-2xl bg-blue-50 p-3 md:p-4 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-500/30"> 
-                  <div className="flex items-center gap-3"> 
-                    <div className="rounded-lg bg-white p-2 md:p-2.5 shadow-sm dark:bg-white/5"> 
-                      <FileImage className="size-5 md:size-6 text-blue-600" /> 
-                    </div> 
-                    <div className="min-w-0"> 
-                      <p className="truncate text-xs md:text-sm font-bold text-blue-900 dark:text-blue-200">{newListImage.name}</p> 
-                      <p className="text-[10px] md:text-xs text-blue-600">{(newListImage.size / (1024 * 1024)).toFixed(2)} MB</p> 
-                    </div> 
-                  </div> 
-                  <button type="button" onClick={() => setNewListImage(null)} className="rounded-lg p-2 md:p-2.5 text-blue-600 transition hover:bg-rose-50 hover:text-rose-600"> 
-                    <X className="size-4 md:size-5" /> 
-                  </button> 
-                </div> 
-              ) : ( 
-                <label className="group flex h-28 md:h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/30 transition hover:border-blue-500 hover:bg-blue-50/30 dark:border-white/10 dark:bg-white/5"> 
-                  <div className="mb-2 md:mb-3 flex size-10 md:size-12 items-center justify-center rounded-xl bg-white text-slate-400 shadow-sm transition group-hover:bg-blue-600 group-hover:text-white dark:bg-white/5"> 
-                    <ImageIcon className="size-5 md:size-6" /> 
-                  </div> 
-                  <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-500 group-hover:text-blue-600"> 
-                    {isEditMode && editingList?.imageUrl ? 'Remplacer la photo' : 'Choisir une photo'} 
-                  </span> 
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) setNewListImage(file); }} /> 
-                </label> 
-              )} 
-            </div> 
-          </div>
+          <div className="space-y-6 xl:sticky xl:top-6">
+            <Panel title="Médias" icon={Clapperboard} delay={0.06}>
+              <div className="space-y-6">
+                <MediaPicker
+                  label="Vidéo de présentation"
+                  icon={Video}
+                  kind="video"
+                  accept="video/*"
+                  file={newListVideo}
+                  currentUrl={isEditMode ? editingList?.videoUrl : null}
+                  onPick={setNewListVideo}
+                  onClear={() => setNewListVideo(null)}
+                />
+                <MediaPicker
+                  label="Photo de la liste"
+                  icon={ImageIcon}
+                  kind="image"
+                  accept="image/*"
+                  file={newListImage}
+                  currentUrl={isEditMode ? editingList?.imageUrl : null}
+                  onPick={setNewListImage}
+                  onClear={() => setNewListImage(null)}
+                />
+              </div>
+            </Panel>
 
-          <div className="flex flex-col gap-4 border-t border-slate-100 pt-8 dark:border-white/5 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-[10px] md:text-xs font-bold text-rose-500">{listError}</p>
-            <div className="flex gap-3 md:gap-4">
-              <Link
-                to={`${ADMIN_PRIVATE_PATH}/scrutins/${id}`}
-                className="flex h-11 md:h-12 flex-1 md:flex-none items-center justify-center rounded-xl bg-slate-100 px-6 md:px-8 text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-600 transition hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10"
-              >
-                Annuler
-              </Link>
-              <button
-                type="submit"
-                disabled={createListMutation.isPending || updateListMutation.isPending}
-                className="flex h-11 md:h-12 flex-[2] md:flex-none items-center justify-center gap-2 md:gap-3 rounded-xl bg-blue-600 px-6 md:px-10 text-[10px] md:text-xs font-bold uppercase tracking-widest text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 active:scale-95 disabled:opacity-60"
-              >
-                {createListMutation.isPending || updateListMutation.isPending ? (
-                  <Loader2 className="size-4 md:size-5 animate-spin" />
-                ) : isEditMode ? (
-                  <Save className="size-4 md:size-5" />
-                ) : (
-                  <Plus className="size-4 md:size-5" />
-                )}
+            <div className="space-y-3 rounded-xl border border-slate-200/80 bg-white p-4 dark:border-white/[0.07] dark:bg-night-900/60">
+              {listError && <FormError>{listError}</FormError>}
+              <AdminButton type="submit" variant="primary" className="w-full" loading={saving} icon={isEditMode ? Save : Plus}>
                 {isEditMode ? 'Enregistrer les modifications' : 'Créer la liste'}
-              </button>
+              </AdminButton>
+              <AdminButtonLink to={`${ADMIN_PRIVATE_PATH}/scrutins/${id}`} variant="ghost" className="w-full">
+                Annuler
+              </AdminButtonLink>
             </div>
           </div>
         </div>

@@ -103,7 +103,7 @@ export function OtpInput({ value, onChange, isDark: isDarkProp, id, disabled, 'a
     if (isDark) {
       return `${boxBaseClass} ${
         isFocused
-          ? 'border-aqua-400/80 bg-aqua-400/[0.06] ring-4 ring-aqua-400/15 text-white'
+          ? 'border-brand-400 bg-brand-400/[0.08] ring-4 ring-brand-400/20 text-white'
           : hasValue
             ? 'border-white/20 bg-white/[0.06] text-white'
             : 'border-white/10 bg-white/[0.02] text-slate-400'
@@ -112,7 +112,7 @@ export function OtpInput({ value, onChange, isDark: isDarkProp, id, disabled, 'a
 
     return `${boxBaseClass} ${
       isFocused
-        ? 'border-aqua-500 bg-white ring-4 ring-aqua-400/15 text-slate-950'
+        ? 'border-brand-500 bg-white ring-4 ring-brand-500/15 text-slate-950'
         : hasValue
           ? 'border-slate-300 bg-white text-slate-950 shadow-soft'
           : 'border-slate-200 bg-slate-50 text-slate-400'
@@ -163,7 +163,7 @@ export function OtpInput({ value, onChange, isDark: isDarkProp, id, disabled, 'a
               {value.length === i && !disabled && (
                 <motion.div
                   layoutId="otp-cursor"
-                  className="absolute bottom-2.5 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-aqua-500"
+                  className="absolute bottom-2.5 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-brand-500"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: [0, 1, 0] }}
                   transition={{ duration: 1, repeat: Infinity }}
@@ -210,7 +210,7 @@ export function OtpInput({ value, onChange, isDark: isDarkProp, id, disabled, 'a
               {value.length === i && !disabled && (
                 <motion.div
                   layoutId="otp-cursor"
-                  className="absolute bottom-2.5 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-aqua-500"
+                  className="absolute bottom-2.5 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-brand-500"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: [0, 1, 0] }}
                   transition={{ duration: 1, repeat: Infinity }}

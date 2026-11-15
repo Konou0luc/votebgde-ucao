@@ -43,7 +43,7 @@ const NAV_ITEMS: NavItem[] = [
 ]
 
 function navLinkClass(isActive: boolean, collapsed: boolean) {
-  return `group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 ${
+  return `group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-[15px] font-medium transition-colors duration-200 ${
     isActive
       ? 'text-slate-950 dark:text-white'
       : 'text-slate-500 hover:bg-slate-900/[0.04] hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/[0.04] dark:hover:text-slate-100'
@@ -89,10 +89,10 @@ function NavItems({
                   />
                 )}
                 {isActive && !collapsed && (
-                  <span className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-aqua-500" aria-hidden />
+                  <span className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-crimson-500" aria-hidden />
                 )}
                 <Icon
-                  className={`relative size-[18px] shrink-0 ${isActive ? 'text-brand-600 dark:text-aqua-300' : ''}`}
+                  className={`relative size-[18px] shrink-0 ${isActive ? 'text-brand-600 dark:text-brand-300' : ''}`}
                   strokeWidth={1.6}
                 />
                 {!collapsed && <span className="relative truncate">{label}</span>}
@@ -113,10 +113,10 @@ function ConsoleBrand({ compact = false }: { compact?: boolean }) {
       </span>
       {!compact && (
         <div className="min-w-0 leading-tight">
-          <p className="truncate text-sm font-semibold tracking-tight text-slate-950 dark:text-white">
-            Vote<span className="text-brand-600 dark:text-aqua-300">BGDE</span>
+          <p className="truncate text-[15px] font-semibold tracking-tight text-slate-950 dark:text-white">
+            Vote<span className="text-brand-600 dark:text-brand-300">BGDE</span>
           </p>
-          <p className="text-[11px] text-slate-500">Console d'administration</p>
+          <p className="text-xs text-slate-500">Console d'administration</p>
         </div>
       )}
     </div>
@@ -173,20 +173,19 @@ export function AdminDashboardLayout({ children }: PropsWithChildren) {
   const initials = (admin?.email ?? '?').slice(0, 2).toUpperCase()
 
   return (
-    <div className="relative min-h-[100dvh] w-full bg-[#f6f7fa] text-slate-900 dark:bg-night-950 dark:text-slate-100">
+    <div className="relative min-h-[100dvh] w-full bg-[#f6f7fa] md:h-[100dvh] md:overflow-hidden text-slate-900 dark:bg-night-950 dark:text-slate-100">
       <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute left-1/2 top-[-20rem] h-[40rem] w-[70rem] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(76,103,242,0.08),transparent)] dark:bg-[radial-gradient(closest-side,rgba(76,103,242,0.16),transparent)]" />
         <div className="bg-dots mask-radial absolute inset-0 opacity-50" />
       </div>
 
-      <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-[1600px] flex-col md:flex-row md:gap-4 md:p-4 lg:gap-5 lg:p-5">
+      <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-[1600px] flex-col md:h-full md:min-h-0 md:flex-row md:gap-4 md:p-4 lg:gap-5 lg:p-5">
         {/* Barre latérale (desktop) */}
         <aside
-          className={`hidden shrink-0 transition-[width] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] md:block ${
-            collapsed ? 'w-[72px]' : 'w-[248px]'
+          className={`hidden shrink-0 md:h-full transition-[width] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] md:block ${
+            collapsed ? 'w-[76px]' : 'w-[268px]'
           }`}
         >
-          <div className="sticky top-4 flex h-[calc(100dvh-2rem)] flex-col lg:top-5 lg:h-[calc(100dvh-2.5rem)]">
+          <div className="flex h-full flex-col overflow-y-auto">
             <div
               className={`flex items-center pb-5 pt-1 ${collapsed ? 'flex-col gap-3' : 'justify-between gap-2 px-1'}`}
             >
@@ -201,7 +200,7 @@ export function AdminDashboardLayout({ children }: PropsWithChildren) {
               </button>
             </div>
 
-            {!collapsed && <p className="mb-2 px-3 text-[11px] font-medium uppercase tracking-[0.14em] text-slate-400">Navigation</p>}
+            {!collapsed && <p className="mb-2 px-3 text-xs font-medium uppercase tracking-[0.14em] text-slate-400">Navigation</p>}
             <nav aria-label="Administration" className="flex flex-col gap-0.5">
               <NavItems items={items} collapsed={collapsed} disabled={isPasswordChangeRequired} layoutId="admin-nav-desktop" />
             </nav>
@@ -228,13 +227,13 @@ export function AdminDashboardLayout({ children }: PropsWithChildren) {
                     title={admin.email}
                     className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg"
                   >
-                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-aqua-500 text-[11px] font-semibold text-white">
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-semibold text-white">
                       {initials}
                     </span>
                     {!collapsed && (
                       <span className="min-w-0">
-                        <span className="block truncate text-xs font-medium text-slate-900 dark:text-white">{admin.email}</span>
-                        <span className="block truncate text-[11px] text-slate-500">{admin.role?.replace(/_/g, ' ').toLowerCase()}</span>
+                        <span className="block truncate text-[13px] font-medium text-slate-900 dark:text-white">{admin.email}</span>
+                        <span className="block truncate text-xs text-slate-500">{admin.role?.replace(/_/g, ' ').toLowerCase()}</span>
                       </span>
                     )}
                   </NavLink>
@@ -312,14 +311,14 @@ export function AdminDashboardLayout({ children }: PropsWithChildren) {
                   />
                 </nav>
                 <div className="mt-auto border-t border-slate-200/80 pt-4 dark:border-white/[0.06]">
-                  {admin && <p className="mb-3 truncate px-3 text-xs text-slate-500">{admin.email}</p>}
+                  {admin && <p className="mb-3 truncate px-3 text-[13px] text-slate-500">{admin.email}</p>}
                   <button
                     type="button"
                     onClick={() => {
                       setMobileOpen(false)
                       handleLogout()
                     }}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-500/10 dark:text-rose-400"
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[15px] font-medium text-rose-600 transition-colors hover:bg-rose-500/10 dark:text-rose-400"
                   >
                     <LogOut className="size-[18px]" strokeWidth={1.6} />
                     Déconnexion
@@ -331,13 +330,13 @@ export function AdminDashboardLayout({ children }: PropsWithChildren) {
         </AnimatePresence>
 
         {/* Contenu */}
-        <main className="min-w-0 flex-1">
+        <main className="min-w-0 flex-1 md:h-full md:min-h-0">
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="min-h-[calc(100dvh-4rem)] w-full overflow-x-hidden bg-white p-4 dark:bg-night-900/60 sm:p-6 md:min-h-[calc(100dvh-2rem)] md:rounded-2xl md:border md:border-slate-200/80 md:shadow-soft md:dark:border-white/[0.07] md:dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] lg:min-h-[calc(100dvh-2.5rem)] lg:p-10"
+            className="min-h-[calc(100dvh-4rem)] w-full overflow-x-hidden bg-white p-4 dark:bg-night-900/60 sm:p-6 md:h-full md:min-h-0 md:overflow-y-auto md:overscroll-contain md:rounded-2xl md:border md:border-slate-200/80 md:shadow-soft md:dark:border-white/[0.07] md:dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] lg:p-10"
           >
             {children}
           </motion.div>

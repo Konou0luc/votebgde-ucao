@@ -58,9 +58,9 @@ function SuccessBanner() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: EASE_OUT }}
       role="status"
-      className="mb-8 flex items-center gap-4 rounded-2xl border border-aqua-500/25 bg-aqua-500/[0.07] p-4 text-left text-aqua-800 dark:text-aqua-200"
+      className="mb-8 flex items-center gap-4 rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.07] p-4 text-left text-emerald-800 dark:text-emerald-200"
     >
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-aqua-500/15">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15">
         <CheckCircle size={22} weight="duotone" />
       </span>
       <div>
@@ -258,7 +258,7 @@ export function VoteResultsPage() {
                                 transition={{ duration: 1.2, ease: EASE_OUT, delay: 0.3 + i * 0.08 }}
                                 className={`h-full rounded-full ${
                                   leader
-                                    ? 'bg-gradient-to-r from-brand-500 to-aqua-400 shadow-[0_0_12px_rgba(45,212,191,0.5)]'
+                                    ? 'bg-brand-600 dark:bg-brand-400'
                                     : 'bg-slate-300 dark:bg-white/20'
                                 }`}
                               />
@@ -271,20 +271,20 @@ export function VoteResultsPage() {
                 </Reveal>
 
                 <Reveal immediate delay={0.25} className="space-y-4">
-                  <div className="relative isolate overflow-hidden rounded-2xl border border-white/10 bg-night-950 p-7 text-white shadow-lift">
+                  <div className="relative isolate overflow-hidden rounded-2xl border border-brand-700 bg-brand-600 p-7 text-white shadow-lift">
                     <div className="dark">
                       <Backdrop pattern="dots" glow />
                     </div>
                     <div className="relative">
-                      <div className="flex size-11 items-center justify-center rounded-xl bg-aqua-400/15 text-aqua-300 ring-1 ring-aqua-300/25">
+                      <div className="flex size-11 items-center justify-center rounded-xl bg-white/10 text-white ring-1 ring-white/20">
                         <ShieldCheck size={22} weight="duotone" />
                       </div>
                       <h3 className="mt-6 text-xl font-semibold tracking-tight">Vote sécurisé</h3>
-                      <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                      <p className="mt-2 text-sm leading-relaxed text-brand-100">
                         Chaque vote est compté une seule fois et reste secret : personne ne peut savoir qui a voté pour quelle liste.
                       </p>
-                      <div className="mt-6 flex items-center gap-2 border-t border-white/10 pt-5 text-xs text-slate-400">
-                        <span className="size-1.5 rounded-full bg-aqua-400" /> Un étudiant, un vote
+                      <div className="mt-6 flex items-center gap-2 border-t border-white/15 pt-5 text-xs text-brand-100">
+                        <span className="size-1.5 rounded-full bg-white" /> Un étudiant, un vote
                       </div>
                     </div>
                   </div>

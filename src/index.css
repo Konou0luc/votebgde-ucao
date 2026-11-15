@@ -4,7 +4,7 @@
 
 /* ────────────────────────────────────────────────────────────
    VoteBGDE — Design tokens
-   Bleu institutionnel UCAO (brand) + turquoise lumineux (aqua)
+   Bleu UCAO (brand) + rouge bordeaux UCAO (crimson) — couleurs unies, sans dégradé
    ──────────────────────────────────────────────────────────── */
 @theme {
   --font-display: "Geist", "Inter", ui-sans-serif, system-ui, sans-serif;
@@ -15,44 +15,47 @@
   --color-cream-100: #fdfbf7;
   --color-cream-200: #f4f0e8;
 
-  /* Brand — bleu UCAO modernisé */
-  --color-brand-50: #eef3ff;
-  --color-brand-100: #dde6ff;
-  --color-brand-200: #c2d1ff;
-  --color-brand-300: #9bb3ff;
-  --color-brand-400: #6f8cfb;
-  --color-brand-500: #4c67f2;
-  --color-brand-600: #3a4fe0;
-  --color-brand-700: #2f3fbf;
-  --color-brand-800: #2a389a;
-  --color-brand-900: #28357a;
-  --color-brand-950: #161c45;
+  /* Brand — bleu du logo UCAO (#2D3A8D, relevé sur le fichier logo) */
+  --color-brand-50: #eef0fa;
+  --color-brand-100: #dde1f4;
+  --color-brand-200: #bcc3e8;
+  --color-brand-300: #929dd6;
+  --color-brand-400: #6674c0;
+  --color-brand-500: #4251a8;
+  --color-brand-600: #2d3a8d;
+  --color-brand-700: #263078;
+  --color-brand-800: #202963;
+  --color-brand-900: #1a214f;
+  --color-brand-950: #11163a;
 
   /* Les pages admin utilisent "blue-*" : on les aligne sur la marque */
-  --color-blue-50: #eef3ff;
-  --color-blue-100: #dde6ff;
-  --color-blue-200: #c2d1ff;
-  --color-blue-300: #9bb3ff;
-  --color-blue-400: #6f8cfb;
-  --color-blue-500: #4c67f2;
-  --color-blue-600: #3a4fe0;
-  --color-blue-700: #2f3fbf;
-  --color-blue-800: #2a389a;
-  --color-blue-900: #28357a;
-  --color-blue-950: #161c45;
+  --color-blue-50: #eef0fa;
+  --color-blue-100: #dde1f4;
+  --color-blue-200: #bcc3e8;
+  --color-blue-300: #929dd6;
+  --color-blue-400: #6674c0;
+  --color-blue-500: #4251a8;
+  --color-blue-600: #2d3a8d;
+  --color-blue-700: #263078;
+  --color-blue-800: #202963;
+  --color-blue-900: #1a214f;
+  --color-blue-950: #11163a;
 
-  /* Aqua — accent turquoise lumineux */
-  --color-aqua-50: #ecfdfa;
-  --color-aqua-100: #cdfaf2;
-  --color-aqua-200: #9ef3e5;
-  --color-aqua-300: #62e6d4;
-  --color-aqua-400: #2dd4bf;
-  --color-aqua-500: #14b8a6;
-  --color-aqua-600: #0d9488;
-  --color-aqua-700: #0f766e;
+  /* Crimson — rouge du logo UCAO (#822127, relevé sur le fichier logo) */
+  --color-crimson-50: #fbf1f2;
+  --color-crimson-100: #f6dfe1;
+  --color-crimson-200: #ecbcc0;
+  --color-crimson-300: #dc8e95;
+  --color-crimson-400: #c45a63;
+  --color-crimson-500: #a9333d;
+  --color-crimson-600: #952830;
+  --color-crimson-700: #822127;
+  --color-crimson-800: #6c1c21;
+  --color-crimson-900: #5a1a1f;
+  --color-crimson-950: #320c0f;
 
-  --color-accent: #3a4fe0;
-  --color-accent-soft: rgba(58, 79, 224, 0.12);
+  --color-accent: #2d3a8d;
+  --color-accent-soft: rgba(46, 58, 140, 0.12);
 
   --color-night-700: #1a1e2c;
   --color-night-800: #10131d;
@@ -65,7 +68,7 @@
   --shadow-lift:
     0 1px 2px rgba(15, 23, 42, 0.05),
     0 24px 48px -24px rgba(15, 23, 42, 0.22);
-  --shadow-glow: 0 0 0 1px rgba(45, 212, 191, 0.25), 0 8px 32px -8px rgba(45, 212, 191, 0.35);
+  --shadow-glow: 0 0 0 4px rgba(46, 58, 140, 0.12);
   --shadow-inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 
   --ease-premium: cubic-bezier(0.32, 0.72, 0, 1);
@@ -84,6 +87,11 @@
 @keyframes pulse-ring {
   0% { transform: scale(0.8); opacity: 0.7; }
   80%, 100% { transform: scale(2.2); opacity: 0; }
+}
+
+@keyframes toast-progress {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
 }
 
 @keyframes float-slow {
@@ -132,15 +140,15 @@
   }
 
   ::selection {
-    @apply bg-aqua-400/25 text-slate-900;
+    @apply bg-brand-200 text-slate-900;
   }
 
   .dark ::selection {
-    @apply bg-aqua-400/30 text-white;
+    @apply bg-brand-500/50 text-white;
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-aqua-400);
+    outline: 2px solid var(--color-brand-500);
     outline-offset: 2px;
     border-radius: 6px;
   }
@@ -198,25 +206,14 @@
     mask-image: linear-gradient(to bottom, #000 40%, transparent);
   }
 
-  /* Ligne lumineuse en haut d'une surface */
+  /* Ancienne ligne lumineuse : supprimée (pas de dégradé) */
   .edge-highlight {
     position: relative;
   }
-  .edge-highlight::before {
-    content: "";
-    position: absolute;
-    inset-inline: 12%;
-    top: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(45, 212, 191, 0.55), transparent);
-    pointer-events: none;
-  }
 
+  /* Mot mis en valeur : rouge UCAO uni */
   .text-gradient {
-    @apply bg-gradient-to-r from-brand-600 via-brand-500 to-aqua-500 bg-clip-text text-transparent;
-  }
-  .dark .text-gradient {
-    @apply from-brand-300 via-brand-200 to-aqua-300;
+    @apply text-crimson-700 dark:text-crimson-500;
   }
 
   /* ── Typographie ── */
@@ -252,7 +249,7 @@
 
   /* ── Champs ── */
   .tt-field-outline {
-    @apply border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)] outline-none transition-[box-shadow,border-color,background-color] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] placeholder:text-slate-400 hover:border-slate-300 focus:border-aqua-500 focus:ring-4 focus:ring-aqua-400/15 dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:placeholder:text-slate-500 dark:hover:border-white/20 dark:focus:border-aqua-400/70 dark:focus:ring-aqua-400/10;
+    @apply border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)] outline-none transition-[box-shadow,border-color,background-color] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] placeholder:text-slate-400 hover:border-slate-300 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:placeholder:text-slate-500 dark:hover:border-white/20 dark:focus:border-brand-400 dark:focus:ring-brand-400/15;
   }
 
   .tt-label {
@@ -268,13 +265,7 @@
   }
 
   .skeleton {
-    @apply rounded-xl bg-slate-100 dark:bg-white/[0.04];
-    background-image: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%);
-    background-size: 200% 100%;
-    animation: var(--animate-shimmer);
-  }
-  .dark .skeleton {
-    background-image: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.05) 50%, transparent 100%);
+    @apply animate-pulse rounded-xl bg-slate-100 dark:bg-white/[0.05];
   }
 }
 

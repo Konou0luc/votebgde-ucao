@@ -91,10 +91,24 @@ export function VoteResultsPage() {
   const hasResults = Boolean(resultsQuery.data) && sortedResults.length > 0
   const voteTitle = activeScrutinQuery.data?.title
 
-  /* ─── Pas de résultats : composition centrée unique ─── */
-  if (!isLoading && !hasResults) {
+  /* ─── Chargement ou pas de résultats : même composition centrée (aucun saut de mise en page) ─── */
+  if (!hasResults) {
     let empty: ReactNode
-    if (!activeScrutinQuery.data) {
+    if (isLoading) {
+      empty = (
+        <CardShell
+          role="status"
+          aria-live="polite"
+          className="flex min-h-[19rem] flex-col items-center justify-center gap-4 !rounded-3xl !p-10 text-sm text-slate-500 dark:text-slate-400"
+        >
+          <span className="relative flex size-10 items-center justify-center">
+            <span className="absolute inset-0 rounded-full border border-slate-200 dark:border-white/10" />
+            <span className="absolute inset-0 animate-spin rounded-full border border-transparent border-t-brand-600" />
+          </span>
+          Chargement des résultats…
+        </CardShell>
+      )
+    } else if (!activeScrutinQuery.data) {
       empty = (
         <EmptyState icon={<Calendar size={26} />} title="Aucun vote en cours">
           Il n’y a actuellement aucun vote ouvert. Les résultats apparaîtront ici à la fin du prochain vote.
@@ -129,8 +143,7 @@ export function VoteResultsPage() {
         <div className="relative mx-auto flex min-h-[calc(100dvh-7rem)] w-full max-w-xl flex-col justify-center px-4 py-12 text-center sm:px-6">
           {fromVote && <SuccessBanner />}
           <Reveal immediate className="mb-8">
-            <p className="tt-overline">Résultats</p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.035em] text-slate-950 dark:text-white sm:text-5xl">
+            <h1 className="text-4xl font-semibold tracking-[-0.035em] text-slate-950 dark:text-white sm:text-5xl">
               Résultats <span className="text-gradient">du vote.</span>
             </h1>
           </Reveal>
@@ -140,7 +153,7 @@ export function VoteResultsPage() {
     )
   }
 
-  /* ─── Chargement ou résultats : mise en page alignée sur une grille ─── */
+  /* ─── Résultats : mise en page alignée sur une grille ─── */
   return (
     <div className="relative isolate">
       <Backdrop pattern="grid" />
@@ -149,8 +162,7 @@ export function VoteResultsPage() {
 
         <Reveal immediate className="mb-10 flex flex-col gap-4 md:mb-12 md:flex-row md:items-end md:justify-between">
           <div className="max-w-3xl">
-            <p className="tt-overline">Résultats</p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.035em] text-slate-950 dark:text-white sm:text-5xl lg:text-6xl">
+            <h1 className="text-4xl font-semibold tracking-[-0.035em] text-slate-950 dark:text-white sm:text-5xl lg:text-6xl">
               {voteTitle || 'Résultats'} <span className="text-gradient">du vote.</span>
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-400 md:text-lg">
@@ -159,19 +171,6 @@ export function VoteResultsPage() {
           </div>
         </Reveal>
 
-        {isLoading && (
-          <div className="space-y-4" aria-busy="true" aria-label="Chargement des résultats">
-            <div className="grid gap-4 md:grid-cols-3">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="skeleton h-28" />
-              ))}
-            </div>
-            <div className="grid gap-6 lg:grid-cols-3">
-              <div className="skeleton h-72 lg:col-span-2" />
-              <div className="skeleton h-72" />
-            </div>
-          </div>
-        )}
 
         {resultsQuery.data ? (
           sortedResults.length > 0 ? (

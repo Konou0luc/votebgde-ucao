@@ -155,8 +155,7 @@ export function LandingPage() {
       <section className="relative py-16 md:py-24">
         <div className="section-container">
           <Reveal className="mx-auto max-w-2xl text-center">
-            <p className="tt-overline">Vos garanties</p>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white md:text-5xl">
+            <h2 className="text-3xl font-semibold tracking-tight text-slate-950 dark:text-white md:text-5xl">
               Un vote simple, sûr et secret.
             </h2>
             <p className="mt-5 text-base leading-relaxed text-slate-600 dark:text-slate-400 md:text-lg">
@@ -206,8 +205,7 @@ export function LandingPage() {
 
           <div>
             <Reveal>
-              <p className="tt-overline">Comment voter</p>
-              <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white md:text-5xl">
+              <h2 className="text-3xl font-semibold tracking-tight text-slate-950 dark:text-white md:text-5xl">
                 Voter en <span className="text-gradient">4 étapes simples.</span>
               </h2>
               <p className="mt-5 max-w-lg text-base leading-relaxed text-slate-600 dark:text-slate-400 md:text-lg">
@@ -249,8 +247,7 @@ export function LandingPage() {
           <div className="section-container">
             <Reveal className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
               <div className="max-w-xl">
-                <p className="tt-overline">Le vote</p>
-                <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white md:text-5xl">
+                <h2 className="text-3xl font-semibold tracking-tight text-slate-950 dark:text-white md:text-5xl">
                   Listes candidates
                 </h2>
                 <p className="mt-4 text-base leading-relaxed text-slate-600 dark:text-slate-400 md:text-lg">

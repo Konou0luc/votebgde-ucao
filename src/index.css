@@ -158,6 +158,22 @@
   select:focus-visible {
     outline: none;
   }
+
+  /* Menus déroulants natifs : couleurs explicites pour que les options restent lisibles
+     dans les deux thèmes (sinon texte blanc sur liste blanche en mode sombre). */
+  select option,
+  select optgroup {
+    background-color: #ffffff;
+    color: #0f172a;
+  }
+  .dark select option,
+  .dark select optgroup {
+    background-color: var(--color-night-800);
+    color: #f1f5f9;
+  }
+  select option:disabled {
+    color: #94a3b8;
+  }
 }
 
 /* ────────────────────────────────────────────────────────────
